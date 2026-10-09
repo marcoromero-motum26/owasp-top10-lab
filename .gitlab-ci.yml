@@ -1,0 +1,300 @@
+# Permite que se ejecute cuando se hace push a la rama main (o a la que aplique)
+workflow:
+  rules:
+  # Se ejecuta si se hace un push/merge directo a main
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+  # Se ejecuta si es un merge request dirigido a main
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+
+# El pipeline se va a ejecutar a develop. Dev a main ya no se debe de ejecutar.
+
+stages:
+  - security-sast
+  - upload-reports
+  - test_mock
+  - trigger-child
+
+variables:
+  IMAGE_NAME: "api-catalogo-validador-etl"
+  VERSION: $CI_COMMIT_SHORT_SHA
+  IMAGE_PATH: "us-south1-docker.pkg.dev/motum-erp/despliegues-backend/${IMAGE_NAME}:v${VERSION}"
+  SECURE_LOG_LEVEL: "info"
+
+# ==================================================
+# 1. ESCANEO DE SECRETOS (Gitleaks - Funcional)
+# ==================================================
+secret_detection:
+  stage: security-sast
+  image:
+    name: zricethezav/gitleaks:v8.30.0
+    entrypoint: [""]
+  allow_failure: true
+  script:
+    - gitleaks detect --source . --verbose --report-format sarif --report-path gitleaks-report.sarif
+  artifacts:
+    when: always
+    paths:
+      - gitleaks-report.sarif
+    expire_in: 7 days
+
+# ==================================================
+# 2. ANÁLISIS DE COMPOSICIÓN (Trivy FS SCA - Funcional)
+# ==================================================
+trivy_fs_scan:
+  stage: security-sast
+  image:
+    name: aquasec/trivy:0.49.1
+    entrypoint: [""]
+  allow_failure: true
+  script:
+    - trivy fs --format sarif --output trivy-sca-report.sarif .
+  artifacts:
+    when: always
+    paths:
+      - trivy-sca-report.sarif
+    expire_in: 7 days
+
+# ==================================================
+# 3. ANÁLISIS ESTÁTICO DE CÓDIGO (Semgrep SAST - Funcional)
+# ==================================================
+sast_semgrep:
+  stage: security-sast
+  image:
+    name: semgrep/semgrep:latest
+    entrypoint: [""]
+  allow_failure: true
+  variables:
+    SEMGREP_IN_DOCKER: "0"
+  script:
+    - semgrep scan --config "p/default" --sarif -o semgrep-report.sarif .
+  artifacts:
+    when: always
+    paths:
+      - semgrep-report.sarif
+    expire_in: 7 days
+
+sast_bearer:
+  stage: security-sast
+  image:
+    name: bearer/bearer:1.37.0 # Versión fijada por buenas prácticas
+    entrypoint: [""]
+  allow_failure: true
+  script:
+    - echo "=== Escaneando lógica de negocio y APIs con Bearer ==="
+    - bearer scan . --format json --output bearer-report.json
+  artifacts:
+    when: always
+    paths:
+      - bearer-report.sarif
+    expire_in: 7 days
+
+# ==================================================
+# ESCANEO ENFOCADO EN PYTHON
+# ==================================================
+
+sast_python_bandit:
+  stage: security-sast
+  image: 
+    name: python:3.14
+    entrypoint: [""]
+  allow_failure: true
+  rules:
+    - exists:
+      - "**/*.py"
+      - requirements.txt
+  script:
+    - echo "=== Escaneo de vulnerabiliadades en Python con Bandit==="
+    - pip install "bandit[sarif]"
+    - bandit -r . -f sarif -o bandit-report.sarif
+  artifacts:
+    when: always
+    paths:
+      - bandit-report.sarif
+    expire_in: 7 days
+
+# ==================================================
+# ESCANEO ENFOCADO EN JAVA
+# ==================================================
+
+sast_java_spotbugs:
+  stage: security-sast
+  image:
+    name: maven:3.9-eclipse-temurin-17
+    entrypoint: [""]
+  allow_failure: true
+  rules:
+    # Ejecutarse solamente en caso de que se encuentre archivos java
+    - exists:
+      - pom.xml
+      - build.gradle
+  script:
+    - echo "=== Escaneando código Java con SpotBugs ==="
+    - mvn clean compile com.github.spotbugs:spotbugs-maven-plugin:4.8.2:spotbugs -Dspotbugs.xmlOutput=true -Dspotbugs.xmlOutputDirectory=target/
+  artifacts:
+    when: always
+    paths:
+      - target/spotbugsXml.xml
+    expire_in: 7 days
+
+# ==================================================
+# PRUEBA DE DEFECTDOJO - ENVIAR REPORTE DE HALLAZGOS
+# ==================================================
+
+upload_test_to_defetdojo:
+  stage: upload-reports
+  image:
+    name: curlimages/curl:latest
+    entrypoint: [""]
+  needs:
+    - secret_detection
+    - trivy_fs_scan
+    - sast_semgrep
+    - sast_bearer
+    - job: sast_python_bandit
+      optional: true
+    - job: sast_java_spotbugs
+      optional: true
+  when: always
+  script:
+    - echo "=== Subiendo reportes a DefectDojo ==="
+    - |
+      # Función optimizada para ingesta concurrente, tipado estricto y manejo de errores HTTP
+      upload_report() {
+        local file=$1
+        local scan_type=$2
+        local test_title=$3
+
+        if [ -f "$file" ]; then
+          echo "Subiendo $file a DefectDojo como $scan_type ($test_title)..."
+          
+          # -sS silencia la salida estándar pero muestra errores. 
+          # --fail asegura que cURL retorne exit code > 0 si DefectDojo responde 4xx/5xx
+          curl -sS --fail -X POST "$DEFECTDOJO_URL/api/v2/reimport-scan/" \
+            -H "Authorization: Token $API_KEY_DEFECTDOJO" \
+            -F "scan_type=$scan_type" \
+            -F "test_title=$test_title" \
+            -F "file=@$file" \
+            -F "product_name=$NOMBRE_ACTIVO_DD" \
+            -F "product_type_name=Research and Development" \
+            -F "engagement_name=Pipeline - ${CI_COMMIT_REF_SLUG:-SAST}" \
+            -F "auto_create_context=true" \
+            -F "close_old_findings=true" \
+            -F "deduplication_on_engagement=true" \
+            -F "push_to_jira=true" \
+            -F "active=true" \
+            -F "verified=true" 
+        else
+          echo "Advertencia: Archivo $file no encontrado. Se omite."
+        fi
+      }
+
+      # Invocación con segregación de Test Title y corrección de Parsers Nativos
+      upload_report "gitleaks-report.sarif" "SARIF" "Gitleaks Secrets"
+      upload_report "trivy-sca-report.sarif" "SARIF" "Trivy SCA"
+      upload_report "semgrep-report.sarif" "SARIF" "Semgrep SAST"
+      upload_report "bearer-report.json" "Bearer CLI" "Bearer SAST"
+      upload_report "bandit-report.sarif" "SARIF" "Bandit SAST"
+      
+      # XML genérico no existe en DefectDojo, se debe usar el parser oficial de SpotBugs
+      upload_report "target/spotbugsXml.xml" "SpotBugs Scan" "SpotBugs SAST"
+
+# ==================================================
+# 5. PRUEBAS MOCK Y GENERACIÓN DEL PIPELINE HIJO
+# ==================================================
+analisis_sonar-junit:
+  stage: test_mock
+  image: alpine:latest
+  when: always
+  script:
+    - echo "=== [MOCK TEST] Generando archivo dynamic-child-pipeline.yml ==="
+    - |
+      cat << 'EOF' > dynamic-child-pipeline.yml
+      stages:
+        - build
+        - dockerize
+        - container_scan
+        - deploy
+        - upload_child_reports 
+
+      variables:
+        IMAGE_NAME: "api-catalogo-validador-etl"
+        VERSION: "latest"
+
+      build:
+        stage: build
+        image: alpine:latest
+        script:
+          - echo "=== [MOCK BUILD] Compilación simulada exitosa ==="
+
+      dockerize:
+        stage: dockerize
+        image: alpine:latest
+        script:
+          - echo "=== [MOCK DOCKERIZE] Imagen Docker simulada exitosamente ==="
+
+      container_scan:
+        stage: container_scan
+        image:
+          name: aquasec/trivy:0.49.1
+          entrypoint: [""]
+        script:
+          - echo "=== Escaneando seguridad de la imagen con Trivy ==="
+          - trivy image --format sarif --output trivy-container.sarif alpine:latest
+        artifacts:
+          when: always
+          paths:
+            - trivy-container.sarif
+          expire_in: 7 days
+
+      deploy_dev:
+        stage: deploy
+        image: alpine:latest
+        script:
+          - echo "=== [MOCK DEPLOY] Despliegue simulado en DEV exitoso ==="
+
+      upload_container_report:
+        stage: upload_child_reports
+        image: curlimages/curl:latest
+        when: always  # <--- NUEVO: Sube el reporte aunque el contenedor tenga vulnerabilidades
+        script:
+          - echo "Subiendo reporte del contenedor a DefectDojo..."
+          - |
+            if [ -f "trivy-container.sarif" ]; then
+              curl -X POST "$DEFECTDOJO_URL/api/v2/import-scan/" \
+                -H "Authorization: Token $API_KEY_DEFECTDOJO" \
+                -F "scan_type=SARIF" \
+                -F "file=@trivy-container.sarif" \
+                -F "product_name=prueba_pipeline_vulnerability" \
+                -F "product_type_name=Research and Development" \
+                -F "engagement_name=CI-Pipeline-SAST" \
+                -F "auto_create_context=true" \
+                -F "close_old_findings=true"
+            else
+              echo "Advertencia: trivy-container.sarif no encontrado."
+            fi
+
+      EOF
+  artifacts:
+    paths:
+      - dynamic-child-pipeline.yml
+
+# ==================================================
+# 6. DISPARAR PIPELINE HIJO
+# ==================================================
+trigger-child:
+  stage: trigger-child
+  needs:
+    - job: analisis_sonar-junit
+  when: always
+  trigger:
+    include:
+      - artifact: dynamic-child-pipeline.yml
+        job: analisis_sonar-junit
+    strategy: depend
+
+
+
+  # DESPUES DE CREAR EL CONTENEDOR DOCKER SE PUEDE EJECUTAR EL DAST (OWASP ZAP).
+
+  # USAR TRIVI DESPUÉS DE LA DOCKERIZACIÓN PARA ANALIZAR LA IMAGEN (TRIVI IMAGEN COMO PARÁMETRO)
