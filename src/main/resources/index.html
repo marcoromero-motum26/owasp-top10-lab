@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OWASP 2025 · Laboratorio Java</title>
+<style>
+  :root { color-scheme: dark; font: 16px/1.6 system-ui, sans-serif; background: #101820; color: #e4eef5; }
+  body { max-width: 1100px; margin: auto; padding: 32px 20px; }
+  h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; margin: 16px 0; }
+  h2 { font-size: 1.15rem; } a { color: #7cd4ed; }
+  .notice { padding: 16px; border-left: 4px solid #ffbe66; background: #29251e; }
+  main { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; margin-top: 28px; }
+  article { padding: 22px; border: 1px solid #3a4c5a; border-radius: 12px; background: #192630; }
+  .id { color: #83d5c5; font-family: monospace; } p { color: #c5d1dc; }
+  button { background: #83d5c5; color: #102820; border: 0; padding: 12px 18px; border-radius: 6px; cursor: pointer; font: inherit; font-weight: 600; }
+  button:disabled { opacity: .5; cursor: wait; } button:focus-visible { outline: 3px solid white; outline-offset: 4px; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow: auto; font-size: .85rem; background: #101820; padding: 12px; }
+  footer { margin-top: 32px; }
+</style>
+<header>
+  <span class="id">JAVA 21 / LABORATORIO LOCAL</span>
+  <h1>OWASP Top 10:2025</h1>
+  <p>Diez fallas reales, diez ejercicios reproducibles. Observa la respuesta y consulta la corrección propuesta en <code>MITIGACIONES.md</code>.</p>
+  <div class="notice"><strong>Aplicación insegura a propósito.</strong> Utiliza datos ficticios y ejecútala únicamente en un entorno de práctica aislado. Los ejercicios modifican el estado; reinicia el contenedor para recuperar los datos iniciales.</div>
+</header>
+<main id="labs"></main>
+<footer>Referencia: <a href="https://top10.owasp.org/2025/es/">OWASP Top 10:2025 oficial</a> · Instrucciones completas en <code>docs/DEMOSTRACIONES.md</code>.</footer>
+<script>
+const request = async (path, data, token) => {
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const options = {headers};
+  if (data) { options.method = 'POST'; options.body = new URLSearchParams(data); }
+  const response = await fetch(path, options);
+  return {status: response.status, body: await response.json()};
+};
+const labs = [
+  ['A01', 'Pérdida de control de acceso', 'Inicia sesión como Alice y lee la factura privada de Bob cambiando el identificador.', async () => {
+    const login = await request('/api/login', {user:'alice',password:'demo123'});
+    return {propia:await request('/api/a01/invoice?id=1001',null,login.body.token), ajena:await request('/api/a01/invoice?id=1002',null,login.body.token)};
+  }],
+  ['A02', 'Configuración de seguridad incorrecta', 'Un diagnóstico público revela configuración y credenciales ficticias que permiten entrar como administrador.', async () => {
+    const debug = await request('/api/a02/debug');
+    return {debug, login:await request('/api/login',{user:debug.body.adminUser,password:debug.body.adminPassword})};
+  }],
+  ['A03', 'Fallas en la cadena de suministro', 'Compara el JAR original de un proveedor con una actualización alterada: el precio cambia de 1000 a 1.', async () => ({
+    original:await request('/api/a03/update',{channel:'trusted'}), alterado:await request('/api/a03/update',{channel:'compromised'})
+  })],
+  ['A04', 'Fallas criptográficas', 'Compara los hashes MD5 sin salt de Alice y Bob. Ambos usan demo123; el mismo hash permite reconocer la contraseña compartida.', () => request('/api/a04/hashes')],
+  ['A05', 'Inyección', 'Una condición SQL manipulada devuelve todas las filas, incluidas notas privadas de otros clientes.', async () => ({
+    normal:await request('/api/a05/customers?name=Alice'), inyeccion:await request('/api/a05/customers?name='+encodeURIComponent("' OR '1'='1"))
+  })],
+  ['A06', 'Diseño inseguro', 'Canjea dos veces un cupón de bienvenida que debería aceptarse una sola vez.', async () => ({
+    antes:await request('/api/a06/wallet'), primero:await request('/api/a06/redeem',{coupon:'WELCOME10'}), segundo:await request('/api/a06/redeem',{coupon:'WELCOME10'})
+  })],
+  ['A07', 'Fallas de autenticación', 'El token reset-bob permite cambiar la contraseña de Bob a taken123 sin demostrar posesión de su cuenta.', async () => ({
+    reset:await request('/api/a07/reset',{user:'bob',token:'reset-bob',password:'taken123'}), acceso:await request('/api/login',{user:'bob',password:'taken123'})
+  })],
+  ['A08', 'Fallas en la integridad de software o datos', 'Modifica el precio de un carrito codificado en Base64. El servidor confía en el importe alterado.', async () => {
+    const original = await request('/api/a08/cart');
+    const cart = JSON.parse(atob(original.body.cart)); cart.unitPrice = 1;
+    return {original:await request('/api/a08/checkout',{cart:original.body.cart}), alterado:await request('/api/a08/checkout',{cart:btoa(JSON.stringify(cart))})};
+  }],
+  ['A09', 'Fallas en registro y alertas de seguridad', 'Genera ocho intentos fallidos y verifica que no existen eventos de seguridad ni alertas. El contador solo sirve para observar el ejercicio.', async () => {
+    for(let i=0;i<8;i++) await request('/api/a09/login',{user:'admin',password:'wrong'});
+    return request('/api/a09/telemetry');
+  }],
+  ['A10', 'Manejo inadecuado de excepciones', 'Un pago de 1000 se rechaza normalmente, pero se aprueba cuando falla el servicio antifraude.', async () => ({
+    normal:await request('/api/a10/pay',{amount:'1000',riskService:'online'}), fallo:await request('/api/a10/pay',{amount:'1000',riskService:'offline'})
+  })]
+];
+for(const [id,title,description,run] of labs) {
+  const card = document.createElement('article');
+  const badge = document.createElement('span'); badge.className='id'; badge.textContent=id+':2025';
+  const heading = document.createElement('h2'); heading.textContent=title;
+  const p = document.createElement('p'); p.textContent=description;
+  const button = document.createElement('button'); button.textContent='Ejecutar '+id;
+  const result = document.createElement('pre'); result.hidden=true; result.setAttribute('aria-live','polite');
+  button.onclick = async () => {
+    button.disabled=true; result.hidden=false; result.textContent='Ejecutando…';
+    try { result.textContent=JSON.stringify(await run(),null,2); }
+    catch(error) { result.textContent='No fue posible completar el ejercicio: '+error.message; }
+    finally { button.disabled=false; }
+  };
+  card.append(badge,heading,p,button,result); document.querySelector('#labs').append(card);
+}
+</script>
+</html>

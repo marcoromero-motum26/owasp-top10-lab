@@ -1,0 +1,22 @@
+services:
+  lab:
+    build: .
+    ports:
+      - "127.0.0.1:${LAB_PORT:-18080}:8080"
+    environment:
+      LAB_BIND: 0.0.0.0
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    networks:
+      - laboratory
+networks:
+  laboratory:
+    driver: bridge
