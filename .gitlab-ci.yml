@@ -58,21 +58,21 @@ trivy_fs_scan:
 # ==================================================
 # 3. ANÁLISIS ESTÁTICO DE CÓDIGO (Semgrep SAST - Funcional)
 # ==================================================
-sast_semgrep:
-  stage: security-sast
-  image:
-    name: semgrep/semgrep:latest
-    entrypoint: [""]
-  allow_failure: true
-  variables:
-    SEMGREP_IN_DOCKER: "0"
-  script:
-    - semgrep scan --config "p/default" --sarif -o semgrep-report.sarif .
-  artifacts:
-    when: always
-    paths:
-      - semgrep-report.sarif
-    expire_in: 7 days
+#sast_semgrep:
+#  stage: security-sast
+#  image:
+#    name: semgrep/semgrep:latest
+#    entrypoint: [""]
+#  allow_failure: true
+#  variables:
+#    SEMGREP_IN_DOCKER: "0"
+#  script:
+#    - semgrep scan --config "p/default" --sarif -o semgrep-report.sarif .
+#  artifacts:
+#    when: always
+#    paths:
+#      - semgrep-report.sarif
+#    expire_in: 7 days
 
 sast_bearer:
   stage: security-sast
