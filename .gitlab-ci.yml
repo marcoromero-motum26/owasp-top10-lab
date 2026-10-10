@@ -149,7 +149,7 @@ upload_test_to_defetdojo:
   needs:
     - secret_detection
     - trivy_fs_scan
-    - sast_semgrep
+    #- sast_semgrep
     - sast_bearer
     - job: sast_python_bandit
       optional: true
@@ -192,7 +192,7 @@ upload_test_to_defetdojo:
       # Invocación con segregación de Test Title y corrección de Parsers Nativos
       upload_report "gitleaks-report.sarif" "SARIF" "Gitleaks Secrets"
       upload_report "trivy-sca-report.sarif" "SARIF" "Trivy SCA"
-      upload_report "semgrep-report.sarif" "SARIF" "Semgrep SAST"
+      # upload_report "semgrep-report.sarif" "SARIF" "Semgrep SAST"
       upload_report "bearer-report.json" "Bearer CLI" "Bearer SAST"
       upload_report "bandit-report.sarif" "SARIF" "Bandit SAST"
       
