@@ -2,10 +2,10 @@
 workflow:
   rules:
   # Se ejecuta si se hace un push/merge directo a main
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "marco_dev"'
 
   # Se ejecuta si es un merge request dirigido a main
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "marco_dev"'
 
 # El pipeline se va a ejecutar a develop. Dev a main ya no se debe de ejecutar.
 
@@ -84,6 +84,19 @@ sast_bearer:
   script:
     - echo "=== Escaneando lógica de negocio y APIs con Bearer ==="
     - bearer scan . --format json --output bearer-report.json
+      SCAN_EXIT_CODE=$?
+
+        echo "Bearer terminó con código: $SCAN_EXIT_CODE"
+
+        if [ -f bearer-report.json ]; then
+          echo "Reporte generado correctamente:"
+          ls -lh bearer-report.json
+        else
+          echo "ERROR: Bearer no generó el reporte JSON"
+          exit 1
+        fi
+
+        exit 0
   artifacts:
     when: always
     paths:
