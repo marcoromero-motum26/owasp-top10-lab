@@ -58,6 +58,7 @@ trivy_fs_scan:
 # ==================================================
 # 3. ANÁLISIS ESTÁTICO DE CÓDIGO (Semgrep SAST - Funcional)
 # ==================================================
+#Analisis sempgrep comentado para test de bearer
 #sast_semgrep:
 #  stage: security-sast
 #  image:
