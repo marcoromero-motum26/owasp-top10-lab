@@ -84,23 +84,10 @@ sast_bearer:
   script:
     - echo "=== Escaneando lógica de negocio y APIs con Bearer ==="
     - bearer scan . --format json --output bearer-report.json
-      SCAN_EXIT_CODE=$?
-
-        echo "Bearer terminó con código: $SCAN_EXIT_CODE"
-
-        if [ -f bearer-report.json ]; then
-          echo "Reporte generado correctamente:"
-          ls -lh bearer-report.json
-        else
-          echo "ERROR: Bearer no generó el reporte JSON"
-          exit 1
-        fi
-
-        exit 0
   artifacts:
     when: always
     paths:
-      - bearer-report.sarif
+      - bearer-report.json
     expire_in: 7 days
 
 # ==================================================
