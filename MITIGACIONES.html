@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Mitigaciones | OWASP Top 10:2025</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+<style>
+  html { background: #f3f6fa; color: #213047; }
+  body { max-width: 1000px; padding: 32px 24px 56px; font: 16px/1.7 system-ui, -apple-system, "Segoe UI", sans-serif; hyphens: none; }
+  main { background: #fff; padding: clamp(20px, 4vw, 48px); border: 1px solid #dbe3ed; border-radius: 16px; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.2; margin-top: 0; color: #10283e; }
+  h2 { font-size: 1.4rem; line-height: 1.35; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #dbe3ed; color: #10283e; }
+  a, a:visited { color: #155b8f; text-underline-offset: 3px; }
+  a:hover { color: #093654; }
+  a:focus-visible { outline: 3px solid #087e8b; outline-offset: 4px; }
+  code { font-size: .9em; }
+  p code, li code { background: #eef2f7; padding: .12em .3em; border-radius: 4px; overflow-wrap: anywhere; }
+  div.sourceCode { background: #f6f8fb; border: 1px solid #dbe3ed; border-radius: 8px; padding: 16px; }
+  pre { margin: 0; white-space: pre; overflow-x: auto; }
+  pre > code.sourceCode { white-space: pre; }
+  pre > code.sourceCode > span { text-indent: 0; padding-left: 0; }
+  #TOC { background: #eef5fa; border-radius: 10px; padding: 20px 24px; margin: 28px 0; }
+  #toc-title { margin: 0 0 12px; padding: 0; border: 0; font-size: 1.1rem; }
+  #TOC ul { padding-left: 20px; }
+  #TOC li { margin: 6px 0; }
+  .guide-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-bottom: 20px; }
+  .guide-nav strong { color: #10283e; margin-right: auto; }
+  .guide-nav a[aria-current="page"] { font-weight: 700; }
+  .guide-footer { text-align: center; margin-top: 24px; font-size: .9rem; }
+  @media (max-width: 600px) { body { padding: 16px 12px 32px; } main { padding: 20px 16px; } div.sourceCode { padding: 12px; } }
+  @media print { html, body, main { background: #fff; color: #000; } body { max-width: none; padding: 0; font-size: 10pt; } main { border: 0; padding: 0; } .guide-nav, .guide-footer { display: none; } h2 { break-after: avoid; } div.sourceCode { break-inside: avoid; } pre, pre > code.sourceCode { white-space: pre-wrap; overflow-wrap: anywhere; } }
+</style>
+</head>
+<body id="inicio">
+<nav class="guide-nav" aria-label="Guías del laboratorio"><strong>OWASP Top 10:2025</strong><a href="docs/DEMOSTRACIONES.html">Demostraciones</a><a href="MITIGACIONES.html" aria-current="page">Mitigaciones</a></nav>
+<main>
+<h1
+id="mitigaciones-específicas-del-laboratorio-owasp-top-102025">Mitigaciones
+específicas del laboratorio OWASP Top 10:2025</h1>
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contenido</h2>
+<ul>
+<li><a href="#mitigaciones-específicas-del-laboratorio-owasp-top-102025"
+id="toc-mitigaciones-específicas-del-laboratorio-owasp-top-102025">Mitigaciones
+específicas del laboratorio OWASP Top 10:2025</a>
+<ul>
+<li><a href="#a01--pérdida-de-control-de-acceso"
+id="toc-a01--pérdida-de-control-de-acceso">A01 — Pérdida de control de
+acceso</a></li>
+<li><a href="#a02--configuración-de-seguridad-incorrecta"
+id="toc-a02--configuración-de-seguridad-incorrecta">A02 — Configuración
+de seguridad incorrecta</a></li>
+<li><a href="#a03--fallas-en-la-cadena-de-suministro-de-software"
+id="toc-a03--fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
+en la cadena de suministro de software</a></li>
+<li><a href="#a04--fallas-criptográficas"
+id="toc-a04--fallas-criptográficas">A04 — Fallas criptográficas</a></li>
+<li><a href="#a05--inyección" id="toc-a05--inyección">A05 —
+Inyección</a></li>
+<li><a href="#a06--diseño-inseguro" id="toc-a06--diseño-inseguro">A06 —
+Diseño inseguro</a></li>
+<li><a href="#a07--fallas-de-autenticación"
+id="toc-a07--fallas-de-autenticación">A07 — Fallas de
+autenticación</a></li>
+<li><a href="#a08--fallas-en-integridad-de-software-o-datos"
+id="toc-a08--fallas-en-integridad-de-software-o-datos">A08 — Fallas en
+integridad de software o datos</a></li>
+<li><a href="#a09--fallas-en-registro-y-alertas-de-seguridad"
+id="toc-a09--fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
+registro y alertas de seguridad</a></li>
+<li><a href="#a10--manejo-inadecuado-de-condiciones-excepcionales"
+id="toc-a10--manejo-inadecuado-de-condiciones-excepcionales">A10 —
+Manejo inadecuado de condiciones excepcionales</a></li>
+<li><a href="#orden-de-trabajo-y-aceptación"
+id="toc-orden-de-trabajo-y-aceptación">Orden de trabajo y
+aceptación</a></li>
+</ul></li>
+</ul>
+</nav>
+
+<p>Este archivo describe <strong>cómo corregir cada vulnerabilidad de
+este proyecto</strong>. Las correcciones son propuestas: no están
+aplicadas en la versión didáctica. Los fragmentos ilustran el cambio
+central y pueden requerir nuevos repositorios, tablas o servicios; no
+son parches completos para copiar sin adaptación.</p>
+<p>Para practicar, crea una rama de correcciones, implementa los cambios
+y transforma las pruebas de
+<code>src/test/java/mx/demo/owasp/LabServerTest.java</code> en pruebas
+que esperen el rechazo del abuso. Mantén también casos legítimos para
+evitar que una corrección consista simplemente en inutilizar la
+función.</p>
+<p>La clasificación sigue <a
+href="https://top10.owasp.org/2025/es/">OWASP Top 10:2025</a>. Cada
+categoría puede abarcar muchas debilidades y algunos controles se
+complementan entre sí.</p>
+<h2 id="a01--pérdida-de-control-de-acceso">A01 — Pérdida de control de
+acceso</h2>
+<p><strong>Ubicación:</strong>
+<code>src/main/java/mx/demo/owasp/LabServer.java</code>, métodos
+<code>invoice</code> y <code>currentUser</code>; ruta
+<code>GET /api/a01/invoice</code>.</p>
+<p><strong>Problema:</strong> se exige sesión, pero cualquier usuario
+autenticado obtiene una factura de cualquier propietario al cambiar
+<code>id</code>. Autenticar no equivale a autorizar.</p>
+<p><strong>Cambios necesarios:</strong></p>
+<ol type="1">
+<li>Obtén el propietario desde el almacenamiento del servidor y
+compáralo con el principal de la sesión antes de devolver datos.</li>
+<li>Implementa denegación por defecto y una política central para
+operaciones y objetos; un rol administrativo debe proceder del servidor,
+nunca de un campo enviado por el cliente.</li>
+<li>En una versión con base de datos, filtra por objeto <strong>y
+propietario</strong> en la misma consulta. No consideres los UUID una
+sustitución de la autorización.</li>
+<li>Protege igualmente lectura, modificación, listados y exportación.
+Evita confirmar la existencia de objetos ajenos cuando no sea
+necesario.</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// En invoice, después de obtener owner y antes de construir la respuesta:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span>owner<span class="op">.</span><span class="fu">equals</span><span class="op">(</span>viewer<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">404</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Factura no disponible&quot;</span><span class="op">));</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Verificación:</strong> Alice obtiene 1001; Alice no obtiene
+1002 ni su domicilio; Bob obtiene 1002; un usuario sin sesión recibe
+401. Cambia la expectativa de la prueba
+<code>a01AliceCanReadBobsInvoiceButAnonymousCannot</code> a 403/404 para
+la factura ajena.</p>
+<h2 id="a02--configuración-de-seguridad-incorrecta">A02 — Configuración
+de seguridad incorrecta</h2>
+<p><strong>Ubicación:</strong> <code>LabServer.debug</code>, ruta
+<code>GET /api/a02/debug</code>, credenciales iniciales en
+<code>LabState</code>.</p>
+<p><strong>Problema:</strong> diagnóstico público con credenciales
+funcionales, secreto ficticio y CORS permisivo. No basta con ocultar el
+enlace en la página.</p>
+<p><strong>Cambios necesarios:</strong></p>
+<ol type="1">
+<li>Elimina la ruta de diagnóstico de la distribución de producción o
+regístrala solo en un perfil local explícito. Si se conserva para
+operación, exige una autorización administrativa independiente y
+devuelve campos permitidos de forma expresa.</li>
+<li>No serialices variables de entorno, credenciales ni configuración
+completa. Sustituye secretos incrustados por un gestor de secretos y
+rota las credenciales expuestas; eliminarlas del HTML no revoca su
+uso.</li>
+<li>Quita <code>Access-Control-Allow-Origin: *</code>; la aplicación usa
+el mismo origen y no lo necesita. Cuando haya otro cliente web,
+configura una lista exacta de orígenes y revisa métodos/cabeceras.</li>
+<li>Añade cabeceras apropiadas, como
+<code>X-Content-Type-Options: nosniff</code> y una CSP. Mueve el
+JavaScript inline de <code>index.html</code> a un recurso propio para
+usar una política <code>script-src 'self'</code> sin habilitar ejecución
+inline indiscriminada.</li>
+<li>Deshabilita cuentas de demostración, depuración y respuestas
+detalladas de excepciones en una aplicación real. Conserva diagnósticos
+internos sin secretos.</li>
+</ol>
+<p><strong>Verificación:</strong> un visitante recibe 404/403 en
+<code>/api/a02/debug</code>; ninguna respuesta contiene
+<code>admin123</code> o la clave ficticia; <code>admin/admin123</code>
+deja de autenticar. Una petición de origen no autorizado no obtiene
+permiso CORS. CORS es un control del navegador, no reemplaza
+autorización.</p>
+<h2 id="a03--fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
+en la cadena de suministro de software</h2>
+<p><strong>Ubicación:</strong>
+<code>src/main/java/mx/demo/owasp/SupplyChain.java</code>, método
+<code>quote</code>; <code>fixtures/</code>; plugins/dependencias de
+<code>pom.xml</code>; imágenes base de <code>Dockerfile</code>.</p>
+<p><strong>Problema:</strong> el proceso de actualización carga y
+ejecuta la clase de un proveedor sin acreditar procedencia ni
+aprobación. Los dos JAR locales permiten observar el mismo riesgo sin
+descargar software malicioso.</p>
+<p><strong>Cambios necesarios:</strong></p>
+<ol type="1">
+<li>Retira del cliente web la posibilidad de seleccionar una
+actualización. Instala componentes mediante un flujo administrativo con
+revisión y aprobación.</li>
+<li>Usa un registro de artefactos de confianza, versiones inmutables,
+firma y procedencia verificables. Mantén claves de confianza fuera del
+control del artefacto descargado.</li>
+<li>Verifica el contenido <strong>antes</strong> de crear
+<code>URLClassLoader</code>. Un digest esperado debe provenir de una
+referencia previamente aprobada, no del mismo repositorio potencialmente
+comprometido.</li>
+<li>Mantén SBOM de dependencias directas, transitivas, plugins, JDK e
+imagen del sistema operativo. Integra análisis de composición de
+software, revisión de avisos y actualizaciones con responsables y
+plazos.</li>
+<li>Protege CI/CD, ramas y registros con mínimo privilegio, revisión,
+MFA y credenciales de alcance limitado. Promueve el mismo artefacto
+validado entre entornos y usa despliegues graduales.</li>
+<li>Fija imágenes por digest si necesitas builds reproducibles y
+actualiza esos digests de manera controlada. No confundas fijar
+versiones con mantenerlas actualizadas.</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Ejemplo conceptual antes de cargar el JAR; expectedDigest viene de una</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// configuración aprobada y protegida, nunca del parámetro channel.</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">byte</span><span class="op">[]</span> actual <span class="op">=</span> <span class="bu">MessageDigest</span><span class="op">.</span><span class="fu">getInstance</span><span class="op">(</span><span class="st">&quot;SHA-256&quot;</span><span class="op">).</span><span class="fu">digest</span><span class="op">(</span>Files<span class="op">.</span><span class="fu">readAllBytes</span><span class="op">(</span>jar<span class="op">));</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span><span class="bu">MessageDigest</span><span class="op">.</span><span class="fu">isEqual</span><span class="op">(</span>expectedDigest<span class="op">,</span> actual<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">SecurityException</span><span class="op">(</span><span class="st">&quot;Artefacto no aprobado&quot;</span><span class="op">);</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Además: validar firma/procedencia con una raíz de confianza independiente.</span></span></code></pre></div>
+<p>Un checksum coincidente no acredita por sí solo quién produjo el
+software. La firma tampoco garantiza que un proveedor confiable no haya
+introducido código defectuoso: se necesitan revisión, pruebas y
+respuesta a compromisos.</p>
+<p><strong>Verificación:</strong> el artefacto aprobado mantiene el
+precio 1000; el fixture comprometido se rechaza <strong>antes de
+invocar</strong> <code>PriceRule.apply</code>. Un archivo alterado,
+firma desconocida, versión no aprobada o ausencia del servicio de
+verificación no deben habilitar su carga. Sustituye las expectativas de
+<code>a03CompromisedSupplierJarActuallyChangesExecutedCode</code>.</p>
+<h2 id="a04--fallas-criptográficas">A04 — Fallas criptográficas</h2>
+<p><strong>Ubicación:</strong> <code>LabState.md5</code>,
+<code>passwordHashes</code>, <code>LabServer.login</code>,
+<code>resetPassword</code> y <code>/api/a04/hashes</code>.</p>
+<p><strong>Problema:</strong> MD5 sin salt permite identificar
+contraseñas iguales y probar diccionarios rápidamente. El volcado del
+ejercicio representa acceso a hashes robados.</p>
+<p><strong>Cambios necesarios:</strong></p>
+<ol type="1">
+<li>Sustituye MD5 por una implementación mantenida de Argon2id con salt
+único por contraseña y coste ajustado al servicio. No sustituyas MD5 por
+SHA-256 simple: sigue siendo rápido para ataques de diccionario.</li>
+<li>Encapsula almacenamiento y verificación en un servicio de
+contraseñas, para que <code>login</code> y <code>resetPassword</code>
+usen la misma política. Guarda algoritmo, parámetros y salt junto al
+hash.</li>
+<li>Migra gradualmente: verifica un hash legado solo durante el acceso
+válido, recalcula inmediatamente el hash moderno y elimina el anterior.
+Fuerza restablecimiento para cuentas que no se migren o que se
+consideren comprometidas.</li>
+<li>Elimina <code>/api/a04/hashes</code> de una distribución real.
+Limita acceso al almacenamiento y a sus respaldos.</li>
+<li>Para datos reversibles sensibles, usa cifrado autenticado y gestión
+de claves con rotación; no uses el algoritmo de hashing de contraseñas
+como cifrado. Usa TLS y cookies <code>Secure</code> cuando la aplicación
+se sirva por HTTPS.</li>
+</ol>
+<p><strong>Verificación:</strong> Alice y Bob tienen hashes almacenados
+distintos aun con la misma contraseña; ambas verifican correctamente;
+una contraseña incorrecta no verifica; el diccionario MD5 deja de
+reproducir el hash. Revisa parámetros y coste en el entorno de ejecución
+real, sin escribir criptografía propia.</p>
+<p>Referencia: <a
+href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">OWASP
+Password Storage Cheat Sheet</a>.</p>
+<h2 id="a05--inyección">A05 — Inyección</h2>
+<p><strong>Ubicación:</strong> <code>LabServer.customers</code>,
+<code>GET /api/a05/customers</code>.</p>
+<p><strong>Problema:</strong> <code>name</code> pasa a formar parte de
+la sintaxis SQL. El valor <code>' OR '1'='1</code> cambia el significado
+de la consulta.</p>
+<p><strong>Cambio principal:</strong> reemplaza la concatenación y
+<code>Statement</code> por SQL fijo con <code>PreparedStatement</code> y
+parámetros enlazados.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">String</span> query <span class="op">=</span> <span class="st">&quot;SELECT id, name, private_note FROM customers WHERE name = ?&quot;</span><span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> <span class="op">(</span><span class="dt">var</span> connection <span class="op">=</span> <span class="bu">DriverManager</span><span class="op">.</span><span class="fu">getConnection</span><span class="op">(</span>state<span class="op">.</span><span class="fu">databaseUrl</span><span class="op">);</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>     <span class="dt">var</span> statement <span class="op">=</span> connection<span class="op">.</span><span class="fu">prepareStatement</span><span class="op">(</span>query<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    statement<span class="op">.</span><span class="fu">setString</span><span class="op">(</span><span class="dv">1</span><span class="op">,</span> p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;name&quot;</span><span class="op">,</span> <span class="st">&quot;Alice&quot;</span><span class="op">));</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">(</span><span class="dt">var</span> results <span class="op">=</span> statement<span class="op">.</span><span class="fu">executeQuery</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Construir una respuesta que contenga solo los campos autorizados.</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Valida además longitud y formato de entrada por reglas de negocio. No
+uses listas de palabras prohibidas ni escapes manuales como sustituto de
+parámetros. Para identificadores SQL dinámicos que no admitan
+parámetros, usa una selección de valores permitidos controlada por el
+servidor. Reduce privilegios de la cuenta de base de datos y no
+devuelvas SQL ni notas privadas a usuarios no autorizados.</p>
+<p><strong>Verificación:</strong> <code>Alice</code> devuelve el
+registro permitido; el payload se trata como un nombre literal y
+devuelve cero filas, sin error SQL ni notas ajenas. Prueba también
+nombres legítimos con apóstrofos. La parametrización no reemplaza los
+controles de acceso de A01.</p>
+<h2 id="a06--diseño-inseguro">A06 — Diseño inseguro</h2>
+<p><strong>Ubicación:</strong> <code>LabServer.redeem</code>,
+<code>LabState.wallet</code>.</p>
+<p><strong>Problema:</strong> el requisito de un canje por billetera no
+está representado en el modelo. La operación suma saldo en cada llamada
+aunque el cupón ya se haya consumido.</p>
+<p><strong>Cambios necesarios:</strong></p>
+<ol type="1">
+<li>Define el invariante: un usuario autenticado puede canjear cada
+campaña como máximo una vez; la billetera de destino procede del
+servidor.</li>
+<li>Introduce una tabla de canjes con restricción única
+<code>(user_id, campaign_id)</code>. El registro del canje y el crédito
+deben ocurrir en una única transacción.</li>
+<li>Si la inserción encuentra un canje existente, devuelve 409 o la
+respuesta idempotente original sin volver a acreditar saldo.</li>
+<li>Protege también llamadas concurrentes. La secuencia «consultar si
+existe, luego insertar» sin restricción/transacción permite
+carreras.</li>
+<li>Define caducidad, presupuesto de campaña, elegibilidad y
+recuperación ante fallos antes de implementar promociones.</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> coupon_redemptions (</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    user_id <span class="dt">VARCHAR</span>(<span class="dv">80</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    campaign_id <span class="dt">VARCHAR</span>(<span class="dv">80</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    redeemed_at <span class="dt">TIMESTAMP</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (user_id, campaign_id)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">-- En la misma transacción: INSERT del canje + UPDATE de la billetera.</span></span></code></pre></div>
+<p><strong>Verificación:</strong> primer canje 100 → 110; segundo canje
+mantiene 110. Varias peticiones simultáneas solo generan un crédito. Si
+se inyecta un fallo después de registrar el canje pero antes de
+acreditar el saldo, se revierte toda la transacción.</p>
+<h2 id="a07--fallas-de-autenticación">A07 — Fallas de autenticación</h2>
+<p><strong>Ubicación:</strong> <code>LabServer.resetPassword</code>,
+<code>login</code>, <code>currentUser</code>; mapas de contraseñas y
+sesiones en <code>LabState</code>.</p>
+<p><strong>Problema:</strong> <code>reset-&lt;usuario&gt;</code> puede
+calcularse sin probar identidad, no caduca y se reutiliza. El cambio de
+contraseña tampoco revoca sesiones existentes.</p>
+<p><strong>Cambios necesarios:</strong></p>
+<ol type="1">
+<li>Genera tokens opacos con <code>SecureRandom</code> y entropía
+suficiente, por ejemplo 32 bytes aleatorios codificados en
+Base64url.</li>
+<li>Envía el token por un canal previamente verificado. No lo devuelvas
+a quien solicita un restablecimiento en una API pública.</li>
+<li>Almacena un hash del token ligado al usuario, propósito, caducidad y
+estado de consumo. Consúmelo y cambia la contraseña de forma atómica.
+Aquí un hash criptográfico rápido de un token de alta entropía tiene un
+propósito distinto del hashing de contraseñas.</li>
+<li>Devuelve respuestas uniformes al solicitar recuperación para no
+enumerar cuentas. Limita intentos y solicitudes por cuenta y origen con
+una política que contemple abuso y usuarios legítimos.</li>
+<li>Revoca sesiones después del restablecimiento, rota identificadores
+al autenticar y establece expiración de sesiones. Agrega MFA a
+operaciones y cuentas de riesgo.</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">byte</span><span class="op">[]</span> random <span class="op">=</span> <span class="kw">new</span> <span class="dt">byte</span><span class="op">[</span><span class="dv">32</span><span class="op">];</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">new</span> java<span class="op">.</span><span class="fu">security</span><span class="op">.</span><span class="fu">SecureRandom</span><span class="op">().</span><span class="fu">nextBytes</span><span class="op">(</span>random<span class="op">);</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">String</span> token <span class="op">=</span> Base64<span class="op">.</span><span class="fu">getUrlEncoder</span><span class="op">().</span><span class="fu">withoutPadding</span><span class="op">().</span><span class="fu">encodeToString</span><span class="op">(</span>random<span class="op">);</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Persistir solo su hash + usuario + expiresAt + consumedAt; entregar por canal verificado.</span></span></code></pre></div>
+<p><strong>Verificación:</strong> <code>reset-bob</code> se rechaza; un
+token válido funciona una sola vez y solo para Bob; tokens caducados,
+reutilizados o de otro usuario no cambian contraseñas. La contraseña
+anterior y las sesiones anteriores dejan de funcionar tras un cambio
+válido.</p>
+<h2 id="a08--fallas-en-integridad-de-software-o-datos">A08 — Fallas en
+integridad de software o datos</h2>
+<p><strong>Ubicación:</strong> <code>LabServer.checkout</code>,
+<code>/api/a08/cart</code>.</p>
+<p><strong>Problema:</strong> <code>unitPrice</code> recibido en un
+carrito Base64 decide cuánto cobrar. No se acredita integridad ni
+autoridad del dato.</p>
+<p><strong>Cambios necesarios:</strong></p>
+<ol type="1">
+<li>Acepta del cliente SKU y cantidad. Resuelve precio, descuentos,
+impuestos y disponibilidad a partir de información confiable del
+servidor.</li>
+<li>Valida SKU existente, cantidad positiva y límites. Calcula importes
+con unidades monetarias enteras y comprobación de overflow, o
+<code>BigDecimal</code> con reglas explícitas de redondeo.</li>
+<li>Si necesitas cotizaciones transportadas por el cliente, emite un
+identificador opaco almacenado en el servidor o firma los datos con una
+librería apropiada, incorporando usuario, audiencia, expiración y nonce.
+Verifica antes de usar y aplica controles de repetición.</li>
+<li>Revalida condiciones relevantes al confirmar el pedido. Una firma
+sobre datos elegidos por el atacante no hace confiable el precio.</li>
+</ol>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Ejemplo de catálogo bajo control del servidor:</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> unitPrice <span class="op">=</span> catalog<span class="op">.</span><span class="fu">priceOf</span><span class="op">(</span>sku<span class="op">);</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>quantity <span class="op">&lt;</span> <span class="dv">1</span> <span class="op">||</span> quantity <span class="op">&gt;</span> <span class="dv">10</span><span class="op">)</span> <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span><span class="op">();</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> total <span class="op">=</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">multiplyExact</span><span class="op">(</span>unitPrice<span class="op">,</span> quantity<span class="op">);</span></span></code></pre></div>
+<p><strong>Verificación:</strong> cambiar <code>unitPrice</code> a 1 se
+rechaza o se ignora y el total sigue siendo 1000. SKU desconocido,
+cantidades negativas/excesivas y una cotización vencida se rechazan. Si
+implementas firma, modificar un byte o reutilizar una cotización
+consumida no debe generar un pedido.</p>
+<h2 id="a09--fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
+registro y alertas de seguridad</h2>
+<p><strong>Ubicación:</strong> <code>LabServer.login</code> con
+<code>silent=true</code>, <code>observedLoginFailures</code> y
+<code>/api/a09/telemetry</code>.</p>
+<p><strong>Problema:</strong> se omite emitir evidencia útil sobre
+fallos de acceso. El contador global didáctico no permite reconstruir
+quién intentó acceder, cuándo, desde dónde ni qué regla se activó. Las
+listas vacías representan un sistema de auditoría y alertas ausente.</p>
+<p><strong>Cambios necesarios:</strong></p>
+<ol type="1">
+<li>Crea un servicio de auditoría que emita eventos estructurados para
+login, recuperación, denegaciones de autorización, actualizaciones de
+componentes y operaciones privilegiadas.</li>
+<li>Incluye hora UTC, tipo, identificador de correlación, actor o cuenta
+objetivo, resultado y origen confiable. No confíes directamente en
+<code>X-Forwarded-For</code> si no procede de un proxy controlado.</li>
+<li>No registres contraseñas, cookies, tokens ni datos personales
+innecesarios. Usa serialización estructurada para que caracteres de
+control no creen eventos falsos.</li>
+<li>Envía eventos a almacenamiento central con control de acceso,
+retención y protección contra modificación. Monitorea también pérdida de
+eventos y fallos del canal de auditoría.</li>
+<li>Conecta reglas de detección con un canal real de atención. Como
+criterio didáctico, ocho fallos para una cuenta en cinco minutos deben
+crear una alerta verificable. Ajusta umbrales reales con métricas y
+análisis del servicio.</li>
+<li>En las pruebas usa un emisor en memoria con reloj controlable; en
+operación verifica la entrega al sistema de monitoreo y el procedimiento
+de respuesta.</li>
+</ol>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Punto de integración conceptual antes de responder 401:</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>audit<span class="op">.</span><span class="fu">emit</span><span class="op">(</span><span class="kw">new</span> <span class="fu">SecurityEvent</span><span class="op">(</span><span class="st">&quot;LOGIN_FAILED&quot;</span><span class="op">,</span> clock<span class="op">.</span><span class="fu">instant</span><span class="op">(),</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        correlationId<span class="op">,</span> user<span class="op">,</span> trustedSource<span class="op">,</span> <span class="st">&quot;DENIED&quot;</span><span class="op">));</span></span></code></pre></div>
+<p><strong>Verificación:</strong> ocho intentos fallidos producen ocho
+eventos sin secretos y al menos una alerta según la regla; el evento
+permite correlacionar la secuencia. Una contraseña con saltos de línea
+no genera entradas adicionales. Simula indisponibilidad del receptor y
+comprueba la política de búfer/aviso; no basta con que
+<code>docker compose logs</code> muestre cualquier texto.</p>
+<h2 id="a10--manejo-inadecuado-de-condiciones-excepcionales">A10 —
+Manejo inadecuado de condiciones excepcionales</h2>
+<p><strong>Ubicación:</strong> <code>LabServer.pay</code>, bloque
+<code>catch (IllegalStateException)</code>.</p>
+<p><strong>Problema:</strong> una excepción de una dependencia de
+seguridad se interpreta como aprobación. El pago de 1000, rechazado
+normalmente, se completa cuando el antifraude falla.</p>
+<p><strong>Cambios necesarios:</strong></p>
+<ol type="1">
+<li>Sustituye <code>approved = true</code> en el <code>catch</code> por
+rechazo seguro o estado pendiente sin efectos financieros. No confundas
+fallo de evaluación con resultado aprobado.</li>
+<li>Define un contrato explícito para <code>APPROVED</code>,
+<code>REJECTED</code> y <code>UNAVAILABLE</code>. Captura excepciones
+esperadas concretas y evita capturas amplias que oculten fallos de
+programación.</li>
+<li>Aplica timeouts, reintentos limitados solo cuando sean seguros,
+circuit breaker e idempotencia. No generes duplicados al reintentar
+pagos.</li>
+<li>Mantén consistencia transaccional: no incrementes pedidos ni alteres
+saldos antes de la aprobación válida; revierte cambios parciales.</li>
+<li>Registra el fallo con correlación sin filtrar trazas internas al
+cliente. Devuelve un error temporal uniforme, por ejemplo 503, o un
+estado pendiente explícito según el contrato.</li>
+<li>Retira <code>riskService=offline</code> de la API de producción;
+conserva la inyección de fallos en dobles de prueba o herramientas
+internas controladas.</li>
+</ol>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">catch</span> <span class="op">(</span>RiskServiceUnavailableException exception<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    audit<span class="op">.</span><span class="fu">recordDependencyFailure</span><span class="op">(</span><span class="st">&quot;risk&quot;</span><span class="op">,</span> correlationId<span class="op">);</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">503</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;approved&quot;</span><span class="op">,</span> <span class="kw">false</span><span class="op">,</span> <span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;No fue posible evaluar el pago&quot;</span><span class="op">));</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span> <span class="co">// No modificar completedOrders ni efectuar cargos.</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Verificación:</strong> la misma operación de 1000 nunca se
+aprueba durante caída, timeout o respuesta inválida del antifraude.
+<code>completedOrders</code> permanece igual. Un importe legítimo
+aprobado se completa una sola vez y un reintento con la misma clave de
+idempotencia no duplica la operación.</p>
+<h2 id="orden-de-trabajo-y-aceptación">Orden de trabajo y
+aceptación</h2>
+<p>Para una rama de correcciones de este laboratorio, aborda primero
+autorización, autenticación, SQL y decisiones ante fallos
+(A01/A07/A05/A10); después protege diagnóstico y almacenamiento de
+contraseñas (A02/A04), las reglas comerciales y los datos (A06/A08), y
+el proceso de actualización y la observabilidad (A03/A09). Esto es una
+secuencia pedagógica, no una priorización universal por riesgo.</p>
+<p>Una corrección termina cuando funciona el caso legítimo, se rechaza
+el abuso documentado y existen pruebas de regresión del comportamiento
+esperado. Las medidas Docker actuales reducen exposición, pero no
+sustituyen ninguno de estos cambios. No publiques este proyecto como
+producto real sin completar una revisión de seguridad más amplia.</p>
+</main>
+<footer class="guide-footer"><a href="#inicio">Volver al inicio</a></footer>
+</body>
+</html>

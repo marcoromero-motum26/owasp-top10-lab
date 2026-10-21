@@ -21,7 +21,21 @@ docker compose restart lab
 docker compose down
 ```
 
-`restart` restablece contraseñas, sesiones, base de datos, saldo y contadores. No hay volúmenes persistentes. `down` elimina los contenedores y la red de esta composición.
+`restart` restablece contraseñas, sesiones, base de datos, saldo y contadores. Los datos del laboratorio no se persisten. `down` elimina los contenedores y la red de esta composición.
+
+### Editar la página sin reiniciar
+
+Compose monta `src/main/resources` en `/app/resources` en modo de solo lectura y arranca Java con esa carpeta antes del JAR en el classpath. El servidor lee `index.html` en cada petición y responde con `Cache-Control: no-store`.
+
+Después de guardar cambios en `src/main/resources/index.html` (incluidos su CSS y JavaScript integrados), recarga **http://localhost:18080**. No necesitas reconstruir la imagen ni reiniciar el contenedor, y se conserva el estado del laboratorio.
+
+Si ya tenías un contenedor con la configuración anterior, aplica el nuevo Compose una sola vez:
+
+```sh
+docker compose up -d --wait
+```
+
+Esta actualización recrea el contenedor y restablece sus datos en memoria. Los cambios posteriores en la página solo requieren recargar el navegador. Los cambios en Java, dependencias o fixtures siguen requiriendo `docker compose up --build -d --wait`. El montaje no agrega rutas HTTP para archivos nuevos: actualmente la página se sirve en `/`. Al ejecutar la imagen directamente con `docker run`, se usa la página empaquetada en el JAR.
 
 Solo se publica `127.0.0.1:18080`. El contenedor usa un usuario sin privilegios, sistema de archivos de solo lectura, `/tmp` efímero y una red Docker dedicada. Estas restricciones contienen el laboratorio; **no corrigen sus vulnerabilidades**. No montes carpetas sensibles ni el socket de Docker. Si ejecutas la imagen con `docker run`, conserva la publicación local: `-p 127.0.0.1:18080:8080 -e LAB_BIND=0.0.0.0`.
 

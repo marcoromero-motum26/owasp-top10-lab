@@ -5,6 +5,20 @@ services:
       - "127.0.0.1:${LAB_PORT:-18080}:8080"
     environment:
       LAB_BIND: 0.0.0.0
+    # Prefer local resources over the copies packaged in the JAR.
+    entrypoint:
+      - java
+      - -XX:MaxRAMPercentage=65
+      - -cp
+      - /app/resources:/app/owasp-lab.jar
+      - mx.demo.owasp.Main
+    volumes:
+      - type: bind
+        source: ./src/main/resources
+        target: /app/resources
+        read_only: true
+        bind:
+          create_host_path: false
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m,mode=1777

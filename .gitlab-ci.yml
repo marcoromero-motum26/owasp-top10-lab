@@ -212,7 +212,7 @@ analisis_sonar-junit:
     - |
       cat << 'EOF' > dynamic-child-pipeline.yml
       stages:
-        - build
+        - buildF
         - dockerize
         - container_scan
         - deploy

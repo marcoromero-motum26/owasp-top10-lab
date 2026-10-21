@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Demostraciones reproducibles | OWASP Top 10:2025</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+<style>
+  html { background: #f3f6fa; color: #213047; }
+  body { max-width: 1000px; padding: 32px 24px 56px; font: 16px/1.7 system-ui, -apple-system, "Segoe UI", sans-serif; hyphens: none; }
+  main { background: #fff; padding: clamp(20px, 4vw, 48px); border: 1px solid #dbe3ed; border-radius: 16px; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.2; margin-top: 0; color: #10283e; }
+  h2 { font-size: 1.4rem; line-height: 1.35; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #dbe3ed; color: #10283e; }
+  a, a:visited { color: #155b8f; text-underline-offset: 3px; }
+  a:hover { color: #093654; }
+  a:focus-visible { outline: 3px solid #087e8b; outline-offset: 4px; }
+  code { font-size: .9em; }
+  p code, li code { background: #eef2f7; padding: .12em .3em; border-radius: 4px; overflow-wrap: anywhere; }
+  div.sourceCode { background: #f6f8fb; border: 1px solid #dbe3ed; border-radius: 8px; padding: 16px; }
+  pre { margin: 0; white-space: pre; overflow-x: auto; }
+  pre > code.sourceCode { white-space: pre; }
+  pre > code.sourceCode > span { text-indent: 0; padding-left: 0; }
+  #TOC { background: #eef5fa; border-radius: 10px; padding: 20px 24px; margin: 28px 0; }
+  #toc-title { margin: 0 0 12px; padding: 0; border: 0; font-size: 1.1rem; }
+  #TOC ul { padding-left: 20px; }
+  #TOC li { margin: 6px 0; }
+  .guide-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-bottom: 20px; }
+  .guide-nav strong { color: #10283e; margin-right: auto; }
+  .guide-nav a[aria-current="page"] { font-weight: 700; }
+  .guide-footer { text-align: center; margin-top: 24px; font-size: .9rem; }
+  @media (max-width: 600px) { body { padding: 16px 12px 32px; } main { padding: 20px 16px; } div.sourceCode { padding: 12px; } }
+  @media print { html, body, main { background: #fff; color: #000; } body { max-width: none; padding: 0; font-size: 10pt; } main { border: 0; padding: 0; } .guide-nav, .guide-footer { display: none; } h2 { break-after: avoid; } div.sourceCode { break-inside: avoid; } pre, pre > code.sourceCode { white-space: pre-wrap; overflow-wrap: anywhere; } }
+</style>
+</head>
+<body id="inicio">
+<nav class="guide-nav" aria-label="Guías del laboratorio"><strong>OWASP Top 10:2025</strong><a href="DEMOSTRACIONES.html" aria-current="page">Demostraciones</a><a href="../MITIGACIONES.html">Mitigaciones</a></nav>
+<main>
+<h1 id="demostraciones-reproducibles">Demostraciones reproducibles</h1>
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Contenido</h2>
+<ul>
+<li><a href="#demostraciones-reproducibles"
+id="toc-demostraciones-reproducibles">Demostraciones reproducibles</a>
+<ul>
+<li><a href="#a01--pérdida-de-control-de-acceso"
+id="toc-a01--pérdida-de-control-de-acceso">A01 — Pérdida de control de
+acceso</a></li>
+<li><a href="#a02--configuración-de-seguridad-incorrecta"
+id="toc-a02--configuración-de-seguridad-incorrecta">A02 — Configuración
+de seguridad incorrecta</a></li>
+<li><a href="#a03--fallas-en-la-cadena-de-suministro-de-software"
+id="toc-a03--fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
+en la cadena de suministro de software</a></li>
+<li><a href="#a04--fallas-criptográficas"
+id="toc-a04--fallas-criptográficas">A04 — Fallas criptográficas</a></li>
+<li><a href="#a05--inyección" id="toc-a05--inyección">A05 —
+Inyección</a></li>
+<li><a href="#a06--diseño-inseguro" id="toc-a06--diseño-inseguro">A06 —
+Diseño inseguro</a></li>
+<li><a href="#a07--fallas-de-autenticación"
+id="toc-a07--fallas-de-autenticación">A07 — Fallas de
+autenticación</a></li>
+<li><a href="#a08--fallas-en-la-integridad-del-software-o-de-los-datos"
+id="toc-a08--fallas-en-la-integridad-del-software-o-de-los-datos">A08 —
+Fallas en la integridad del software o de los datos</a></li>
+<li><a href="#a09--fallas-en-registro-y-alertas-de-seguridad"
+id="toc-a09--fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
+registro y alertas de seguridad</a></li>
+<li><a href="#a10--manejo-inadecuado-de-condiciones-excepcionales"
+id="toc-a10--manejo-inadecuado-de-condiciones-excepcionales">A10 —
+Manejo inadecuado de condiciones excepcionales</a></li>
+<li><a href="#restablecer-y-corregir"
+id="toc-restablecer-y-corregir">Restablecer y corregir</a></li>
+</ul></li>
+</ul>
+</nav>
+
+<p>Inicia con <code>docker compose up --build -d --wait</code>. Puedes
+ejecutar todos los ejercicios desde http://localhost:18080 o con
+<code>docker compose exec lab java -cp /app/owasp-lab.jar mx.demo.owasp.SmokeCheck</code>.
+Los comandos siguientes están escritos para <strong>PowerShell</strong>
+y usan <code>curl.exe</code> para evitar el alias <code>curl</code> de
+Windows PowerShell. En Linux/macOS, usa <code>curl</code> en su lugar;
+los pasos que usan objetos PowerShell se pueden sustituir por la página
+interactiva.</p>
+<p>Los cuerpos POST usan <code>application/x-www-form-urlencoded</code>.
+Reinicia con <code>docker compose restart lab</code> para restablecer el
+laboratorio. Solo ejecuta estas peticiones contra tu propia instancia
+local.</p>
+<h2 id="a01--pérdida-de-control-de-acceso">A01 — Pérdida de control de
+acceso</h2>
+<p><strong>Código:</strong> <code>LabServer.invoice</code> y
+<code>currentUser</code>. La sesión identifica al usuario, pero no se
+compara con el propietario de la factura.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">$session</span> <span class="op">=</span> <span class="fu">Invoke-RestMethod</span> <span class="op">-</span>Method Post http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>login <span class="op">-</span>Body @<span class="op">{</span>user<span class="op">=</span><span class="st">&#39;alice&#39;</span><span class="op">;</span> password<span class="op">=</span><span class="st">&#39;demo123&#39;</span><span class="op">}</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>H <span class="st">&quot;Authorization: Bearer </span><span class="op">$(</span><span class="va">$session</span><span class="op">.</span><span class="fu">token</span><span class="op">)</span><span class="st">&quot;</span> <span class="st">&quot;http://localhost:18080/api/a01/invoice?id=1001&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>H <span class="st">&quot;Authorization: Bearer </span><span class="op">$(</span><span class="va">$session</span><span class="op">.</span><span class="fu">token</span><span class="op">)</span><span class="st">&quot;</span> <span class="st">&quot;http://localhost:18080/api/a01/invoice?id=1002&quot;</span></span></code></pre></div>
+<p><strong>Resultado:</strong> la primera factura pertenece a Alice; la
+segunda devuelve <code>owner: bob</code> y <code>viewer: alice</code>,
+HTTP 200, incluyendo domicilio ficticio. Sin sesión devuelve 401. El
+fallo es autorización por objeto, aun con autenticación válida.</p>
+<h2 id="a02--configuración-de-seguridad-incorrecta">A02 — Configuración
+de seguridad incorrecta</h2>
+<p><strong>Código:</strong> <code>LabServer.debug</code>. Una ruta de
+diagnóstico permanece habilitada y accesible sin autenticación.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>i http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a02<span class="op">/</span>debug</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>d <span class="st">&quot;user=admin&amp;password=admin123&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>login</span></code></pre></div>
+<p><strong>Resultado:</strong> configuración interna,
+<code>DEMO-NOT-A-REAL-SECRET</code> y credenciales administrativas
+ficticias en texto claro; el acceso posterior funciona. La respuesta de
+diagnóstico además lleva CORS <code>*</code>. No se exponen variables de
+entorno ni credenciales del equipo anfitrión.</p>
+<h2 id="a03--fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
+en la cadena de suministro de software</h2>
+<p><strong>Código:</strong> <code>SupplyChain.quote</code>,
+<code>fixtures/trusted/vendor/PriceRule.java</code>,
+<code>fixtures/compromised/vendor/PriceRule.java</code> y generación de
+artefactos en <code>pom.xml</code>.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>d <span class="st">&quot;channel=trusted&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a03<span class="op">/</span>update</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>d <span class="st">&quot;channel=compromised&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a03<span class="op">/</span>update</span></code></pre></div>
+<p><strong>Resultado:</strong> <code>chargedPrice</code> pasa de 1000 a
+1. Maven compila dos versiones de un JAR de proveedor. El cargador
+ejecuta <code>vendor.PriceRule.apply</code> sin comprobar firma ni
+procedencia. El selector representa qué actualización entrega el
+proveedor; no hace falta explotar una CVE real ni instalar malware.</p>
+<p>Cada petición carga su propio artefacto y aplica la regla
+inmediatamente; no cambia permanentemente la siguiente petición. Los
+únicos canales permitidos son los dos fixtures locales. La falta de
+control del proceso de actualización es el foco A03; la integridad
+también se relaciona con A08.</p>
+<h2 id="a04--fallas-criptográficas">A04 — Fallas criptográficas</h2>
+<p><strong>Código:</strong> <code>LabState.md5</code> y almacenamiento
+<code>passwordHashes</code>. El endpoint de hashes facilita observar un
+volcado ficticio; el fallo criptográfico es MD5 sin salt.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">$dump</span> <span class="op">=</span> <span class="fu">Invoke-RestMethod</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a04<span class="op">/</span>hashes</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="va">$dump</span> <span class="op">|</span> <span class="fu">ConvertTo-Json</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="va">$md5</span> <span class="op">=</span> <span class="op">[</span>System<span class="op">.</span><span class="fu">Security</span><span class="op">.</span><span class="fu">Cryptography</span><span class="op">.</span><span class="fu">MD5</span><span class="op">]::</span>Create<span class="op">()</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">foreach</span> <span class="op">(</span><span class="va">$word</span> <span class="kw">in</span> <span class="op">@(</span><span class="st">&#39;password&#39;</span><span class="op">,</span> <span class="st">&#39;demo123&#39;</span><span class="op">,</span> <span class="st">&#39;welcome&#39;</span><span class="op">))</span> <span class="op">{</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="va">$hash</span> <span class="op">=</span> <span class="op">-join</span> <span class="op">(</span><span class="va">$md5</span><span class="op">.</span><span class="fu">ComputeHash</span><span class="op">([</span>Text<span class="op">.</span><span class="fu">Encoding</span><span class="op">]::</span>UTF8<span class="op">.</span><span class="fu">GetBytes</span><span class="op">(</span><span class="va">$word</span><span class="op">))</span> <span class="op">|</span> <span class="fu">ForEach-Object</span> <span class="op">{</span> <span class="va">$_</span><span class="op">.</span><span class="fu">ToString</span><span class="op">(</span><span class="st">&#39;x2&#39;</span><span class="op">)</span> <span class="op">})</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span><span class="va">$hash</span> <span class="op">-eq</span> <span class="va">$dump</span><span class="op">.</span><span class="fu">hashes</span><span class="op">.</span><span class="fu">alice</span><span class="op">)</span> <span class="op">{</span> <span class="st">&quot;Contraseña recuperada: </span><span class="va">$word</span><span class="st">&quot;</span> <span class="op">}</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">finally</span> <span class="op">{</span> <span class="va">$md5</span><span class="op">.</span><span class="fu">Dispose</span><span class="op">()</span> <span class="op">}</span></span></code></pre></div>
+<p><strong>Resultado:</strong> recupera <code>demo123</code> de un
+diccionario de tres entradas. Alice y Bob tienen el mismo hash antes de
+A07. Después del restablecimiento de Bob sus hashes serán distintos. No
+se requiere un ataque de colisiones: la velocidad de MD5 y la falta de
+salt permiten probar contraseñas fácilmente.</p>
+<h2 id="a05--inyección">A05 — Inyección</h2>
+<p><strong>Código:</strong> <code>LabServer.customers</code>. SQL real
+ejecutado por H2, construido por concatenación.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>G <span class="op">--</span>data-urlencode <span class="st">&quot;name=Alice&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a05<span class="op">/</span>customers</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>G <span class="op">--</span>data-urlencode <span class="st">&quot;name=&#39; OR &#39;1&#39;=&#39;1&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a05<span class="op">/</span>customers</span></code></pre></div>
+<p><strong>Resultado:</strong> <code>count</code> pasa de 1 a 3; se leen
+notas ficticias de Bob y Admin. La consulta vulnerable resultante
+es:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="kw">id</span>, name, private_note <span class="kw">FROM</span> customers <span class="kw">WHERE</span> name <span class="op">=</span> <span class="st">&#39;&#39;</span> <span class="kw">OR</span> <span class="st">&#39;1&#39;</span><span class="op">=</span><span class="st">&#39;1&#39;</span></span></code></pre></div>
+<p>Si pruebas SQL destructivo adicional podrías modificar la base en
+memoria; reiniciar restaura los datos.</p>
+<h2 id="a06--diseño-inseguro">A06 — Diseño inseguro</h2>
+<p><strong>Código:</strong> <code>LabServer.redeem</code>. Regla de
+negocio: <code>WELCOME10</code> debe otorgar diez pesos solo una vez a
+la billetera de demostración. No existe registro de canjes.</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a06<span class="op">/</span>wallet</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>d <span class="st">&quot;coupon=WELCOME10&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a06<span class="op">/</span>redeem</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>d <span class="st">&quot;coupon=WELCOME10&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a06<span class="op">/</span>redeem</span></code></pre></div>
+<p><strong>Resultado inicial:</strong> saldo 100 → 110 → 120. No se
+necesita una carrera: repetir secuencialmente ya viola la regla. El
+identificador del cupón es válido; falta diseñar el control del ciclo de
+vida del canje.</p>
+<h2 id="a07--fallas-de-autenticación">A07 — Fallas de autenticación</h2>
+<p><strong>Código:</strong> <code>LabServer.resetPassword</code>. Token
+de recuperación derivado directamente del usuario.</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>d <span class="st">&quot;user=bob&amp;token=reset-bob&amp;password=taken123&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a07<span class="op">/</span>reset</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>d <span class="st">&quot;user=bob&amp;password=taken123&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>login</span></code></pre></div>
+<p><strong>Resultado:</strong> restablecimiento y login HTTP 200 sin
+haber acreditado acceso al correo ni a la cuenta de Bob.
+<code>reset-bob</code> se puede reutilizar y no caduca. La contraseña
+anterior deja de funcionar. Restablece el estado al terminar si quieres
+repetir otras prácticas desde cero.</p>
+<h2 id="a08--fallas-en-la-integridad-del-software-o-de-los-datos">A08 —
+Fallas en la integridad del software o de los datos</h2>
+<p><strong>Código:</strong> <code>LabServer.checkout</code>. El carrito
+codificado en Base64 incluye el precio, sin firma ni validación contra
+catálogo.</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="va">$original</span> <span class="op">=</span> <span class="fu">Invoke-RestMethod</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a08<span class="op">/</span>cart</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">Invoke-RestMethod</span> <span class="op">-</span>Method Post http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a08<span class="op">/</span>checkout <span class="op">-</span>Body @<span class="op">{</span>cart<span class="op">=</span><span class="va">$original</span><span class="op">.</span><span class="fu">cart</span><span class="op">}</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="va">$cart</span> <span class="op">=</span> <span class="st">&#39;{&quot;sku&quot;:&quot;LAPTOP-DEMO&quot;,&quot;quantity&quot;:1,&quot;unitPrice&quot;:1}&#39;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="va">$encoded</span> <span class="op">=</span> <span class="op">[</span>Convert<span class="op">]::</span>ToBase64String<span class="op">([</span>Text<span class="op">.</span><span class="fu">Encoding</span><span class="op">]::</span>UTF8<span class="op">.</span><span class="fu">GetBytes</span><span class="op">(</span><span class="va">$cart</span><span class="op">))</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">Invoke-RestMethod</span> <span class="op">-</span>Method Post http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a08<span class="op">/</span>checkout <span class="op">-</span>Body @<span class="op">{</span>cart<span class="op">=</span><span class="va">$encoded</span><span class="op">}</span></span></code></pre></div>
+<p><strong>Resultado:</strong> <code>charged</code> pasa de 1000 a 1 y
+<code>integrityVerified</code> es falso. Base64 solo codifica; no
+protege la integridad. A diferencia de A03, aquí se manipulan datos de
+una transacción y no un componente de software.</p>
+<h2 id="a09--fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
+registro y alertas de seguridad</h2>
+<p><strong>Código:</strong> <code>LabServer.login</code> con
+<code>silent=true</code>. Se cuentan fallos para observarlos en clase,
+pero no se registra usuario, instante, origen, resultado ni correlación;
+no hay emisor de alertas.</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">..</span><span class="dv">8</span> <span class="op">|</span> <span class="fu">ForEach-Object</span> <span class="op">{</span> <span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>s <span class="op">-</span>d <span class="st">&quot;user=admin&amp;password=wrong&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a09<span class="op">/</span>login <span class="op">}</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a09<span class="op">/</span>telemetry</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>docker compose logs lab</span></code></pre></div>
+<p><strong>Resultado:</strong> todos los intentos fallan con 401;
+<code>observedFailures</code> aumenta ocho, <code>securityEvents</code>
+y <code>alerts</code> permanecen vacíos. En los logs solo aparece el
+mensaje de inicio, no los fallos de autenticación. Los arreglos vacíos
+son la representación didáctica de los sistemas de auditoría/alertas
+ausentes, no una consulta a un SIEM real. La evidencia incluye revisar
+la ausencia de escritura de eventos en el método.</p>
+<p>El acceso con contraseña correcta aún funciona. El foco de este
+ejercicio es detectar y alertar, aunque la ausencia de límites de
+intentos también se relaciona con A07.</p>
+<h2 id="a10--manejo-inadecuado-de-condiciones-excepcionales">A10 —
+Manejo inadecuado de condiciones excepcionales</h2>
+<p><strong>Código:</strong> <code>LabServer.pay</code>. Se aprueba por
+defecto cuando el servicio antifraude lanza una excepción.</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>i <span class="op">-</span>d <span class="st">&quot;amount=1000&amp;riskService=online&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a10<span class="op">/</span>pay</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">curl</span><span class="op">.</span><span class="fu">exe</span> <span class="op">-</span>i <span class="op">-</span>d <span class="st">&quot;amount=1000&amp;riskService=offline&quot;</span> http<span class="op">://</span>localhost<span class="op">:</span><span class="dv">18080</span><span class="op">/</span>api<span class="op">/</span>a10<span class="op">/</span>pay</span></code></pre></div>
+<p><strong>Resultado:</strong> el primero devuelve 403 y
+<code>risk-rejected</code>; el segundo 200, <code>approved: true</code>,
+<code>reason: fail-open</code> y aumenta <code>completedOrders</code>.
+La condición <code>offline</code> es una inyección controlada de fallos
+del laboratorio. No contacta servicios externos ni cobra dinero.</p>
+<h2 id="restablecer-y-corregir">Restablecer y corregir</h2>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose restart lab</span></code></pre></div>
+<p>Continúa con <a href="../MITIGACIONES.html">MITIGACIONES.html</a>. Los
+ejemplos son cambios propuestos; la versión entregada mantiene las
+fallas para poder enseñarlas. No existe una opción de configuración que
+convierta este laboratorio en una aplicación apta para producción.</p>
+</main>
+<footer class="guide-footer"><a href="#inicio">Volver al inicio</a></footer>
+</body>
+</html>
