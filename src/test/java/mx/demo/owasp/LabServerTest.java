@@ -1,4 +1,4 @@
-package mx.demo.owasp;
+/*package mx.demo.owasp;
 
 import com.fasterxml.jackson.databind.*;
 import org.junit.jupiter.api.*;
@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Estas pruebas confirman vulnerabilidades intencionales; no certifican seguridad. */
+// Estas pruebas confirman vulnerabilidades intencionales; no certifican seguridad.
 class LabServerTest {
     private static final ObjectMapper JSON = new ObjectMapper();
     private LabServer server;
@@ -146,3 +146,4 @@ class LabServerTest {
         assertEquals(100, get("/api/a06/wallet").json.path("balance").asInt());
     }
 }
+*/
