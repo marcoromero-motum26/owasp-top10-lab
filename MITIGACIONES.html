@@ -373,6 +373,30 @@ excepcionales</a></li>
 <p><a id="a01"></a></p>
 <h2 id="a01-pérdida-de-control-de-acceso">A01 — Pérdida de control de
 acceso</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>Autenticar significa identificar a quien hace la petición; autorizar
+significa decidir si esa persona puede acceder a la factura solicitada.
+Este método realiza ambas comprobaciones antes de enviar
+información.</p>
+<ol type="1">
+<li><code>currentUser(x)</code> obtiene la identidad desde la sesión del
+servidor. Si no hay sesión válida, responde 401 y el <code>return</code>
+termina la operación.</li>
+<li>El cliente puede elegir <code>id</code>, pero el propietario se
+consulta en el mapa definido por el servidor. El cliente no puede
+declarar que una factura ajena le pertenece.</li>
+<li><code>owner == null || !owner.equals(viewer)</code> rechaza tanto
+una factura inexistente como una que pertenece a otra persona. Ambas
+respuestas usan el mismo 404 y mensaje para no confirmar la existencia
+de facturas ajenas.</li>
+<li>Solo después de superar esas condiciones se construye la respuesta
+con total y domicilio. El <code>return</code> es esencial: impide
+continuar hasta la respuesta que contiene los datos.</li>
+</ol>
+<p><strong>Qué cambia:</strong> Alice puede consultar su factura 1001,
+pero cambiar la URL a 1002 ya no le concede acceso. El control efectivo
+está en el servidor; ocultar botones o usar identificadores difíciles de
+adivinar no aplicaría esta regla de propiedad.</p>
 <p><strong>Archivo:</strong>
 <code>src/main/java/mx/demo/owasp/LabServer.java</code>. Reemplaza el
 método <code>invoice</code> completo. No requiere imports nuevos. Si ya
@@ -403,6 +427,34 @@ y propietario en la misma consulta.</p>
 <p><a id="a02"></a></p>
 <h2 id="a02-configuración-de-seguridad-incorrecta">A02 — Configuración
 de seguridad incorrecta</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>La corrección actúa sobre la información expuesta, la cuenta
+comprometida y algunas protecciones del navegador. Son medidas
+complementarias: cada una resuelve un problema diferente.</p>
+<ol type="1">
+<li>El nuevo <code>debug</code> responde 404 sin construir el objeto con
+credenciales y configuración. La ruta continúa definida, pero su
+comportamiento pasa a ser una negativa deliberada.</li>
+<li><code>passwordHashes.remove("admin")</code> elimina del
+almacenamiento la cuenta cuya contraseña era pública. Así, conocer
+<code>admin123</code> deja de permitir iniciar sesión después de
+reconstruir y reiniciar el laboratorio. Ocultar la contraseña en la
+respuesta, por sí solo, no habría impedido su uso.</li>
+<li>Al retirar el cuerpo anterior de <code>debug</code>, también se
+elimina <code>Access-Control-Allow-Origin: *</code>. La página usa el
+mismo origen y no necesita permitir que páginas de otros orígenes lean
+esa respuesta.</li>
+<li><code>X-Content-Type-Options: nosniff</code> indica al navegador que
+respete el tipo de contenido declarado;
+<code>X-Frame-Options: DENY</code> impide mostrar la página dentro de
+marcos que podrían usarse para engañar al usuario al hacer clic;
+<code>Referrer-Policy: no-referrer</code> evita enviar la URL de origen
+en la cabecera Referer.</li>
+</ol>
+<p><strong>Qué cambia:</strong> el diagnóstico deja de revelar
+información y la cuenta expuesta deja de autenticar. Las cabeceras
+añaden protección en el navegador, pero no reemplazan el cierre del
+diagnóstico ni la eliminación de la cuenta.</p>
 <p><strong>Paso 1 — <code>LabServer.java</code>:</strong> reemplaza el
 método <code>debug</code>. Al eliminar su cuerpo anterior también
 desaparece el CORS permisivo.</p>
@@ -440,6 +492,33 @@ trabajo.</p>
 <p><a id="a03"></a></p>
 <h2 id="a03-fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
 en la cadena de suministro de software</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>En esta opción se elimina el punto donde una petición web podía
+provocar la ejecución de código de un proveedor. La regla de precio
+queda dentro del código revisado y compilado de la aplicación.</p>
+<ol type="1">
+<li>La nueva clase <code>SupplyChain</code> ya no crea archivos JAR
+temporales ni un <code>URLClassLoader</code>, y tampoco invoca
+<code>PriceRule.apply</code> mediante reflexión. Por tanto, ningún
+contenido de los JAR de demostración participa en el cálculo.</li>
+<li><code>quote</code> solo acepta el valor <code>trusted</code>;
+cualquier otro canal lanza <code>SecurityException</code>. Esa etiqueta
+es una entrada permitida de la demo, no una prueba criptográfica de
+confianza.</li>
+<li>El precio procede del servidor: la ruta llama a
+<code>quote(..., 1000)</code>. La regla incorporada devuelve ese mismo
+importe y también rechaza precios negativos si se invoca desde otro
+punto del código.</li>
+<li>La ruta captura el rechazo y responde 403. Para el caso permitido
+informa <code>dynamicLoading: false</code>, sin afirmar que se haya
+verificado una firma.</li>
+</ol>
+<p><strong>Qué cambia:</strong> seleccionar <code>compromised</code>
+deja de ejecutar la clase que rebajaba el precio a un peso. La
+protección principal es haber retirado la ejecución dinámica, no confiar
+en el nombre del canal. Si se recupera esa funcionalidad, harán falta
+los controles de aprobación y procedencia descritos al final del
+escenario.</p>
 <p><strong>Opción de presentación:</strong> retirar la carga dinámica y
 compilar la regla aprobada con la aplicación. El cliente ya no puede
 instalar ni ejecutar un JAR. Se conserva el precio legítimo de 1000.
@@ -490,6 +569,42 @@ plugins, imágenes, SBOM y permisos de CI/CD; este parche resuelve el
 escenario de carga dinámica del laboratorio.</p>
 <p><a id="a04"></a></p>
 <h2 id="a04-fallas-criptográficas">A04 — Fallas criptográficas</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>Un hash de contraseña es un valor derivado que permite verificar una
+contraseña sin almacenarla directamente. La corrección cambia tanto la
+forma de obtener ese valor como los lugares donde se utiliza.</p>
+<ol type="1">
+<li><code>Passwords.hash</code> genera un <strong>salt</strong>, una
+secuencia aleatoria nueva de 16 bytes, usando <code>SecureRandom</code>.
+El salt se guarda junto al resultado y no necesita ser secreto. Hace que
+dos cuentas con <code>demo123</code> obtengan hashes distintos y evita
+reutilizar directamente un cálculo contra todas las cuentas.</li>
+<li><code>derive</code> usa PBKDF2-HMAC-SHA256 con 600 000 iteraciones y
+una salida de 256 bits. Ese trabajo repetido encarece cada intento de
+adivinar una contraseña a partir de un hash robado. No vuelve imposible
+adivinar contraseñas débiles; aumenta el coste de probarlas.</li>
+<li>El texto almacenado contiene algoritmo, iteraciones, salt y
+resultado, separados por <code>$</code>. Base64 solo representa los
+bytes del salt y del hash como texto; no aporta cifrado.</li>
+<li><code>verify</code> extrae el salt guardado y deriva el resultado de
+la contraseña introducida con los mismos parámetros. Después compara
+mediante <code>MessageDigest.isEqual</code>, en vez de generar otro salt
+o comparar contraseñas en claro. Un formato no reconocido se
+rechaza.</li>
+<li>Tanto la creación de cuentas como <code>resetPassword</code> usan
+<code>Passwords.hash</code>; así el restablecimiento no vuelve a
+introducir MD5. Los dos endpoints de login comparten el método que usa
+<code>Passwords.verify</code>.</li>
+<li>La ruta <code>/api/a04/hashes</code> responde 404 para dejar de
+publicar los hashes. Un atacante que consiguiera una copia por otra vía
+se enfrentaría además al nuevo mecanismo de almacenamiento.</li>
+</ol>
+<p><strong>Qué cambia:</strong> hay dos barreras distintas: no exponer
+hashes por HTTP y hacer más costoso atacar los que pudieran filtrarse.
+El 404 demuestra la primera; verificar los hashes distintos y el
+funcionamiento de <code>Passwords.verify</code> permite comprobar la
+segunda. El método antiguo <code>md5</code> puede existir sin utilizarse
+en estos flujos.</p>
 <p><strong>Paso 1:</strong> crea
 <code>src/main/java/mx/demo/owasp/Passwords.java</code> con el contenido
 completo siguiente. Usa PBKDF2-HMAC-SHA256 del JDK, salt aleatorio de 16
@@ -603,6 +718,34 @@ implementa migración durante un login válido o restablecimiento forzado;
 no habilites MD5 como alternativa indefinida.</p>
 <p><a id="a05"></a></p>
 <h2 id="a05-inyección">A05 — Inyección</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>El cambio separa las instrucciones de la consulta de los datos que
+aporta el usuario. El nombre buscado puede contener comillas sin
+convertirse en una parte ejecutable del SQL.</p>
+<ol type="1">
+<li>La consulta tiene una estructura fija: <code>WHERE name = ?</code>.
+El signo <code>?</code> reserva un lugar para un valor; el código no
+añade el texto recibido a la sintaxis SQL.</li>
+<li><code>connection.prepareStatement(query)</code> crea la consulta
+parametrizada y <code>statement.setString(1, name)</code> entrega el
+nombre como dato. El controlador JDBC mantiene esa separación al
+ejecutar la consulta.</li>
+<li>Si se recibe <code>' OR '1'='1</code>, se busca un cliente cuyo
+nombre completo sea literalmente ese texto. No se añade una condición
+verdadera al <code>WHERE</code>, por lo que el ataque ya no devuelve
+todas las filas.</li>
+<li>El límite de 80 caracteres respeta el tamaño del campo de la tabla.
+Es una validación adicional; la protección frente a inyección procede de
+los parámetros, no de ese límite.</li>
+<li>La consulta y la respuesta solo incluyen <code>id</code> y
+<code>name</code>. Se dejan de devolver <code>private_note</code> y el
+texto SQL. Los bloques <code>try</code> cierran conexión, sentencia y
+resultados al terminar, incluso si hay un error.</li>
+</ol>
+<p><strong>Qué cambia:</strong> una búsqueda legítima sigue funcionando
+y una entrada con sintaxis SQL se trata como nombre. Este ejemplo
+mantiene público el catálogo de nombres; decidir quién puede consultar
+cada registro requiere autorización adicional.</p>
 <p><strong>Archivo:</strong> <code>LabServer.java</code>. Reemplaza
 <code>customers</code> completo. Utiliza los imports JDBC y de
 colecciones que ya existen. La respuesta deja de incluir SQL y notas
@@ -637,6 +780,34 @@ evitan inyección, pero no implementan autorización. Usa una cuenta SQL
 con privilegios mínimos.</p>
 <p><a id="a06"></a></p>
 <h2 id="a06-diseño-inseguro">A06 — Diseño inseguro</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>La regla «solo una vez» necesita memoria: el servidor debe recordar
+que el cupón ya se utilizó. También debe evitar que dos solicitudes lo
+consuman al mismo tiempo.</p>
+<ol type="1">
+<li><code>welcomeRedeemed</code> empieza en <code>false</code> y
+representa si la única billetera de la demo ya recibió esta promoción.
+Un cupón incorrecto se rechaza antes de consultar o cambiar ese
+estado.</li>
+<li><code>synchronized (state)</code> permite que solo una solicitud a
+la vez ejecute el bloque de canje sobre ese objeto. La comprobación, el
+aumento de saldo y el cambio de la bandera ocurren bajo el mismo
+bloqueo.</li>
+<li>Si la bandera ya es <code>true</code>, se prepara un 409, con
+crédito cero y el saldo actual. No se vuelve a sumar dinero.</li>
+<li>En el primer canje, <code>Math.addExact</code> calcula el nuevo
+saldo y detecta un posible desbordamiento numérico. Después se actualiza
+la billetera y se marca el cupón como usado antes de liberar el
+bloqueo.</li>
+<li>La respuesta HTTP se envía fuera del bloqueo, usando los valores
+capturados para esa operación. Si la respuesta se pierde en la red,
+repetir la petición no vuelve a acreditar el cupón.</li>
+</ol>
+<p><strong>Qué cambia:</strong> dos solicitudes que llegan juntas ya no
+pueden observar ambas el cupón como disponible. Esto funciona para la
+billetera compartida y el proceso único del laboratorio; la bandera no
+es un registro persistente ni una transacción entre varios
+servidores.</p>
 <p><strong>Regla del laboratorio:</strong> existe una sola billetera
 compartida de 100 pesos; WELCOME10 se canjea una vez por esa billetera
 durante la vida del servidor. El parche conserva ese modelo y los
@@ -687,6 +858,42 @@ instancia única del laboratorio; no persiste ante reinicios ni coordina
 réplicas.</p>
 <p><a id="a07"></a></p>
 <h2 id="a07-fallas-de-autenticación">A07 — Fallas de autenticación</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>Un token de restablecimiento es una autorización temporal para
+cambiar una contraseña. Debe ser difícil de adivinar, corresponder a una
+cuenta, vencer y dejar de servir después de usarse.</p>
+<ol type="1">
+<li><code>issueResetToken</code> exige una sesión válida y verifica
+<code>currentPassword</code>. Obtiene el usuario desde esa sesión, no de
+un nombre elegido en la petición. En este laboratorio la emisión sirve
+para un cambio autorizado; no recupera una cuenta cuya contraseña se
+olvidó.</li>
+<li><code>SecureRandom</code> genera 32 bytes aleatorios que se
+representan en Base64url. El valor deja de poder calcularse como
+<code>reset-bob</code>. En <code>resetGrants</code> se guarda su hash
+SHA-256, la cuenta y una caducidad de cinco minutos; un token nuevo
+reemplaza al anterior de esa cuenta.</li>
+<li>Aquí SHA-256 se aplica a un token aleatorio de alta entropía, no a
+una contraseña humana que pueda aparecer en un diccionario. Para la
+contraseña se conserva PBKDF2 mediante <code>Passwords</code>.</li>
+<li><code>resetPassword</code> verifica cuenta, existencia de la
+autorización, vencimiento, longitud y coincidencia del hash antes de
+cambiar nada. Después exige una contraseña de entre 15 y 128 caracteres
+y calcula su hash.</li>
+<li>Bajo <code>synchronized (state)</code>, se guarda la contraseña
+nueva, se elimina el token y se revocan las sesiones de esa cuenta. Al
+compartir el bloqueo con <code>login</code>, no se puede intercalar una
+autenticación con la contraseña anterior durante el cambio. Dos
+solicitudes con el mismo token no pueden consumirlo con éxito.</li>
+<li><code>sessionExpires</code> y <code>sessionUser</code> rechazan
+sesiones después de 30 minutos desde su emisión. Esto también limita su
+duración cuando no hay restablecimiento.</li>
+</ol>
+<p><strong>Qué cambia:</strong> conocer el nombre de Bob ya no autoriza
+a cambiar su contraseña. Los comandos legítimos primero demuestran
+identidad, solicitan el token y lo consumen. La pérdida de acceso por
+olvido necesita un canal de recuperación verificado que este laboratorio
+no incorpora.</p>
 <p><strong>Dependencia: aplica A04 primero.</strong> Los métodos
 siguientes usan <code>Passwords</code>. Aplica A09 después, porque
 modifica el bloque de fallo de este <code>login</code>.</p>
@@ -857,6 +1064,34 @@ control de concurrencia por cuenta y protección frente a saturación.</p>
 <p><a id="a08"></a></p>
 <h2 id="a08-fallas-en-integridad-de-software-o-datos">A08 — Fallas en
 integridad de software o datos</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>El cliente puede pedir un producto y una cantidad, pero el precio
+válido lo decide el servidor. Esa separación evita que editar el carrito
+modifique cuánto se cobra.</p>
+<ol type="1">
+<li>El método decodifica Base64 y lee JSON, rechazando datos mal
+formados y contenidos decodificados de más de 4096 bytes. Estas
+comprobaciones permiten interpretar la entrada, pero todavía no la hacen
+confiable.</li>
+<li>Comprueba que haya un objeto, un SKU de texto —el identificador del
+producto— y una cantidad entera que quepa en un <code>int</code>. Así no
+convierte silenciosamente una fracción en una cantidad válida.</li>
+<li>Busca el SKU en el catálogo definido en el servidor. Para
+<code>LAPTOP-DEMO</code>, el precio es 1000 independientemente de
+cualquier <code>unitPrice</code> incluido por el cliente. Un producto
+desconocido se rechaza.</li>
+<li>Limita la cantidad a entre una y diez unidades. Calcula el total con
+<code>Math.multiplyExact</code>, que detecta desbordamientos; con el
+catálogo y los límites actuales, el importe máximo es 10 000.</li>
+<li>Devuelve el precio aplicado y
+<code>priceSource: server-catalog</code>. El campo informa de la
+decisión; la protección real es usar el valor del catálogo en el
+cálculo.</li>
+</ol>
+<p><strong>Qué cambia:</strong> el usuario todavía puede editar el
+Base64, pero el precio editado ya no influye en el cobro. Esta solución
+no necesita firmar el carrito para proteger ese precio, porque lo vuelve
+a obtener de una fuente controlada por el servidor.</p>
 <p><strong>Archivo:</strong> <code>LabServer.java</code>. Reemplaza
 <code>checkout</code> completo. Conserva el formato Base64 para que los
 botones actuales sigan funcionando, pero ignora <code>unitPrice</code> y
@@ -902,6 +1137,38 @@ pedido.</p>
 <p><a id="a09"></a></p>
 <h2 id="a09-fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
 registro y alertas de seguridad</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>Rechazar una contraseña incorrecta protege ese intento de acceso.
+Registrar lo ocurrido y detectar repeticiones permite además investigar
+y reaccionar ante una secuencia sospechosa.</p>
+<ol type="1">
+<li><code>recordLoginFailure</code> se invoca antes del 401 en ambos
+endpoints de login. Su ejecución deja de depender de
+<code>silent</code>, por lo que los intentos fallidos recorren el mismo
+camino de auditoría.</li>
+<li>Cada evento contiene hora, cuenta intentada, resultado, dirección de
+la conexión e identificador de correlación. Este último permite
+relacionar la alerta con el evento que la disparó. La dirección es la
+del par conectado; detrás de un proxy puede ser la del proxy, no la del
+usuario final.</li>
+<li>Jackson serializa el evento como JSON, escapando caracteres de
+control para que un salto de línea introducido por el cliente no simule
+otro registro. No se incluyen contraseña, cookie ni token, y los nombres
+excesivamente largos se sustituyen por una etiqueta.</li>
+<li>Bajo un bloqueo se actualizan contador y colas. Se cuentan los
+eventos conservados para la misma cuenta durante los últimos cinco
+minutos: es una <strong>ventana móvil</strong>, no un contador que se
+borra periódicamente. Cuando el conteo es ocho se crea una alerta.</li>
+<li>Eventos y alertas se imprimen en consola y se conservan con límites
+de 256 y 64 elementos. <code>telemetry</code> entrega una copia
+coherente solo a una sesión de Alice, la operadora elegida para la
+demo.</li>
+</ol>
+<p><strong>Qué cambia:</strong> los ocho 401 dejan evidencia consultable
+y una alerta local. El código no bloquea automáticamente al atacante ni
+envía avisos a un servicio externo. La retención limitada puede omitir
+eventos necesarios para detectar un patrón; por eso el alcance es
+didáctico.</p>
 <p><strong>Orden:</strong> puedes aplicar A09 sobre el login original,
 sobre A04, o después de A07. Si aplicas A07 posteriormente, vuelve a
 insertar la llamada del paso 3 porque reemplaza <code>login</code>.</p>
@@ -1007,9 +1274,10 @@ class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb29
 ocho fallos generan <code>observedFailures=8</code>, ocho eventos y una
 alerta <code>LOGIN_FAILURE_THRESHOLD</code>. Revisa también
 <code>docker compose logs lab</code>. Un visitante recibe 403 en
-telemetría. No se registran contraseñas, cookies ni tokens. La ventana
-se reinicia tras cinco minutos; la alerta aparece al pasar de siete a
-ocho fallos para una cuenta dentro de la ventana.</p>
+telemetría. No se registran contraseñas, cookies ni tokens. En cada
+fallo se cuentan los eventos conservados de esa cuenta ocurridos durante
+los últimos cinco minutos; se emite una alerta cuando ese conteo es
+ocho.</p>
 <p><strong>Límite explícito:</strong> el búfer conserva 256 eventos y 64
 alertas y se pierde al reiniciar; la ventana se calcula sobre esos 256
 eventos. Es una implementación verificable del escenario, no un SIEM:
@@ -1020,6 +1288,35 @@ de Alice por un rol gestionado por el servidor.</p>
 <p><a id="a10"></a></p>
 <h2 id="a10-manejo-inadecuado-de-condiciones-excepcionales">A10 — Manejo
 inadecuado de condiciones excepcionales</h2>
+<p><strong>Cómo funciona la mitigación</strong></p>
+<p>El método distingue tres situaciones: el antifraude aprueba, rechaza
+o no puede evaluar. La última no debe producir los efectos de una
+aprobación.</p>
+<ol type="1">
+<li>Primero convierte y valida el importe, que debe ser positivo y no
+superar 1 000 000. También acepta solo los estados <code>online</code> y
+<code>offline</code> del simulador. Entradas inválidas reciben 400.</li>
+<li>Cuando el servicio está disponible, se conserva la regla del
+ejercicio: importes de hasta 500 se aprueban; los mayores se rechazan
+con 403.</li>
+<li>Si el simulador lanza <code>IllegalStateException</code>, el
+<code>catch</code> registra un evento con hora e identificador de
+correlación. La respuesta es 503, <code>approved: false</code> y
+<code>reason: risk-unavailable</code>, indicando que faltó una
+evaluación válida.</li>
+<li>El <code>return</code> del <code>catch</code> sale del método antes
+de la instrucción que incrementa <code>orders</code>. No basta con
+cambiar el texto del error: hay que impedir el efecto de completar la
+operación.</li>
+<li>Fuera del <code>catch</code>, el contador solo aumenta si
+<code>approved</code> es verdadero. Una negativa conserva el contador y
+devuelve 403.</li>
+</ol>
+<p><strong>Qué cambia:</strong> apagar el antifraude ya no permite
+aprobar un pago que normalmente se rechaza. Este comportamiento se llama
+rechazo seguro ante fallos: la falta de evaluación no concede permiso.
+Los reintentos de pagos aprobados siguen necesitando idempotencia, es
+decir, reconocer una misma operación para no cobrarla dos veces.</p>
 <p><strong>Archivo:</strong> <code>LabServer.java</code>. Reemplaza
 <code>pay</code> completo. Usa la excepción que el simulador ya lanza
 (<code>IllegalStateException</code>), por lo que no necesitas inventar

@@ -267,46 +267,56 @@
 <body id="inicio">
 <nav class="guide-nav" aria-label="Guías del laboratorio"><strong>OWASP Top 10:2025</strong><a href="DEMOSTRACIONES.html" aria-current="page">Demostraciones</a><a href="../MITIGACIONES.html">Mitigaciones</a></nav>
 <main>
-<h1 id="demostraciones-reproducibles">Demostraciones reproducibles</h1>
 <nav id="TOC" role="doc-toc">
-<h2 id="toc-title">Contenido</h2>
 <ul>
 <li><a href="#demostraciones-reproducibles"
 id="toc-demostraciones-reproducibles">Demostraciones reproducibles</a>
 <ul>
-<li><a href="#a01--pérdida-de-control-de-acceso"
-id="toc-a01--pérdida-de-control-de-acceso">A01 — Pérdida de control de
+<li><a href="#a01-pérdida-de-control-de-acceso"
+id="toc-a01-pérdida-de-control-de-acceso">A01 — Pérdida de control de
 acceso</a></li>
-<li><a href="#a02--configuración-de-seguridad-incorrecta"
-id="toc-a02--configuración-de-seguridad-incorrecta">A02 — Configuración
+<li><a href="#a02-configuración-de-seguridad-incorrecta"
+id="toc-a02-configuración-de-seguridad-incorrecta">A02 — Configuración
 de seguridad incorrecta</a></li>
-<li><a href="#a03--fallas-en-la-cadena-de-suministro-de-software"
-id="toc-a03--fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
+<li><a href="#a03-fallas-en-la-cadena-de-suministro-de-software"
+id="toc-a03-fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
 en la cadena de suministro de software</a></li>
-<li><a href="#a04--fallas-criptográficas"
-id="toc-a04--fallas-criptográficas">A04 — Fallas criptográficas</a></li>
-<li><a href="#a05--inyección" id="toc-a05--inyección">A05 —
+<li><a href="#a04-fallas-criptográficas"
+id="toc-a04-fallas-criptográficas">A04 — Fallas criptográficas</a></li>
+<li><a href="#a05-inyección" id="toc-a05-inyección">A05 —
 Inyección</a></li>
-<li><a href="#a06--diseño-inseguro" id="toc-a06--diseño-inseguro">A06 —
+<li><a href="#a06-diseño-inseguro" id="toc-a06-diseño-inseguro">A06 —
 Diseño inseguro</a></li>
-<li><a href="#a07--fallas-de-autenticación"
-id="toc-a07--fallas-de-autenticación">A07 — Fallas de
+<li><a href="#a07-fallas-de-autenticación"
+id="toc-a07-fallas-de-autenticación">A07 — Fallas de
 autenticación</a></li>
-<li><a href="#a08--fallas-en-la-integridad-del-software-o-de-los-datos"
-id="toc-a08--fallas-en-la-integridad-del-software-o-de-los-datos">A08 —
+<li><a href="#a08-fallas-en-la-integridad-del-software-o-de-los-datos"
+id="toc-a08-fallas-en-la-integridad-del-software-o-de-los-datos">A08 —
 Fallas en la integridad del software o de los datos</a></li>
-<li><a href="#a09--fallas-en-registro-y-alertas-de-seguridad"
-id="toc-a09--fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
+<li><a href="#a09-fallas-en-registro-y-alertas-de-seguridad"
+id="toc-a09-fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
 registro y alertas de seguridad</a></li>
-<li><a href="#a10--manejo-inadecuado-de-condiciones-excepcionales"
-id="toc-a10--manejo-inadecuado-de-condiciones-excepcionales">A10 —
-Manejo inadecuado de condiciones excepcionales</a></li>
+<li><a href="#a10-manejo-inadecuado-de-condiciones-excepcionales"
+id="toc-a10-manejo-inadecuado-de-condiciones-excepcionales">A10 — Manejo
+inadecuado de condiciones excepcionales</a></li>
 <li><a href="#restablecer-y-corregir"
 id="toc-restablecer-y-corregir">Restablecer y corregir</a></li>
 </ul></li>
 </ul>
 </nav>
-
+<h1 id="demostraciones-reproducibles">Demostraciones reproducibles</h1>
+<p>Esta guía explica el <strong>código vulnerable original</strong> de
+cada escenario y cómo los comandos permiten observar su fallo. Tu copia
+puede contener mitigaciones ya aplicadas: en ese caso los resultados de
+abuso deben cambiar. Cada ejemplo incluye una explicación paso a paso y
+una referencia a su corrección. En particular, un 404 deliberado en A04
+indica que el servidor dejó de exponer hashes; no significa que falte un
+método Java.</p>
+<p><code>SmokeCheck</code> conserva expectativas de la versión
+vulnerable y puede fallar después de corregirla. Reiniciar restablece
+los datos en memoria, pero <strong>no deshace cambios del
+código</strong>. Para interpretar un resultado, distingue entre la
+versión vulnerable y la versión mitigada que compilaste.</p>
 <p>Inicia con <code>docker compose up --build -d --wait</code>. Puedes
 ejecutar todos los ejercicios desde http://localhost:18080 o con
 <code>docker compose exec lab java -cp /app/owasp-lab.jar mx.demo.owasp.SmokeCheck</code>.
@@ -319,8 +329,29 @@ interactiva.</p>
 Reinicia con <code>docker compose restart lab</code> para restablecer el
 laboratorio. Solo ejecuta estas peticiones contra tu propia instancia
 local.</p>
-<h2 id="a01--pérdida-de-control-de-acceso">A01 — Pérdida de control de
+<h2 id="a01-pérdida-de-control-de-acceso">A01 — Pérdida de control de
 acceso</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li>En la versión vulnerable, <code>currentUser</code> demuestra que la
+petición pertenece a Alice. Esa comprobación responde «¿quién eres?»,
+pero no «¿puedes leer esta factura?».</li>
+<li>El parámetro <code>id</code> de la URL está bajo control del
+cliente. Cambiar 1001 por 1002 hace que el servidor seleccione la
+factura de Bob.</li>
+<li>Aunque el método conoce <code>owner</code>, la versión vulnerable no
+lo compara con <code>viewer</code> antes de ejecutar
+<code>json(...)</code>. Por eso envía el domicilio y el total a
+cualquier usuario autenticado que solicite ese ID.</li>
+</ol>
+<p>El ataque aprovecha una referencia directa a un objeto sin
+autorización por propietario; se conoce como IDOR. No exige robar una
+sesión de Bob: una sesión legítima de Alice basta. El dato que no debe
+aceptarse como permiso es el identificador elegido por el cliente.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> después de agregar
+la comparación de propietario, Alice conserva el 200 para 1001 y recibe
+404 para 1002. Ese rechazo es deliberado. La explicación y el código
+están en <a href="../MITIGACIONES.html#a01">A01 de mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>LabServer.invoice</code> y
 <code>currentUser</code>. La sesión identifica al usuario, pero no se
 compara con el propietario de la factura.</p>
@@ -332,8 +363,31 @@ class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb1-
 segunda devuelve <code>owner: bob</code> y <code>viewer: alice</code>,
 HTTP 200, incluyendo domicilio ficticio. Sin sesión devuelve 401. El
 fallo es autorización por objeto, aun con autenticación válida.</p>
-<h2 id="a02--configuración-de-seguridad-incorrecta">A02 — Configuración
+<h2 id="a02-configuración-de-seguridad-incorrecta">A02 — Configuración
 de seguridad incorrecta</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li>La ruta de diagnóstico original llama a <code>debug</code> sin pedir
+sesión ni comprobar un rol. Cualquier cliente que conozca la URL puede
+ejecutarla, aunque la página no tenga un botón visible.</li>
+<li>El método construye una respuesta que incluye configuración y
+<code>adminPassword</code>. Es información que el servidor debería
+reservar; serializarla como JSON la entrega al solicitante.</li>
+<li>La cuenta <code>admin</code> existe en <code>LabState</code> con esa
+misma contraseña. Por eso la segunda petición convierte la filtración de
+información en un acceso autenticado.</li>
+<li><code>Access-Control-Allow-Origin: *</code> permite que una página
+de otro origen lea esta respuesta pública desde un navegador. Sin
+embargo, el endpoint ya es accesible directamente con curl: quitar CORS
+no cerraría por sí solo la exposición.</li>
+</ol>
+<p>El fallo combina una función de diagnóstico pública con credenciales
+utilizables. No es necesario atacar la base de datos ni romper un hash,
+porque la aplicación revela directamente la contraseña ficticia.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> se espera 404 en
+diagnóstico y 401 al intentar entrar con <code>admin/admin123</code>
+después de eliminar esa cuenta y reiniciar. Consulta <a
+href="../MITIGACIONES.html#a02">A02 de mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>LabServer.debug</code>. Una ruta de
 diagnóstico permanece habilitada y accesible sin autenticación.</p>
 <div class="sourceCode" id="cb2"><pre
@@ -344,8 +398,33 @@ class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-
 ficticias en texto claro; el acceso posterior funciona. La respuesta de
 diagnóstico además lleva CORS <code>*</code>. No se exponen variables de
 entorno ni credenciales del equipo anfitrión.</p>
-<h2 id="a03--fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
+<h2 id="a03-fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
 en la cadena de suministro de software</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li>El parámetro <code>channel</code> selecciona cuál de los dos JAR
+locales usará <code>SupplyChain.quote</code>. Ambos contienen una clase
+con el mismo nombre: <code>vendor.PriceRule</code>.</li>
+<li>En la versión vulnerable, el método copia el recurso a un archivo
+temporal, crea un <code>URLClassLoader</code> y carga la clase elegida.
+Después invoca <code>apply</code>: no está leyendo simplemente un dato,
+está ejecutando código del componente.</li>
+<li>La versión original devuelve el precio recibido. La versión alterada
+devuelve siempre 1. Como el servidor usa su resultado, el cambio del
+componente modifica realmente la lógica de cobro.</li>
+<li>No hay una comprobación previa de que el contenido sea una versión
+revisada y aprobada. Limitar los nombres a <code>trusted</code> y
+<code>compromised</code> contiene la demo, pero no verifica la
+procedencia del código elegido.</li>
+</ol>
+<p>El fallo consiste en otorgar confianza de ejecución a un componente
+sin validar el proceso por el que llega. Los fixtures hacen visible el
+problema con código pequeño y local; no representan una descarga libre
+de archivos.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> la opción
+documentada elimina la carga dinámica, conserva 1000 para el canal
+permitido y rechaza <code>compromised</code> con 403. Véase <a
+href="../MITIGACIONES.html#a03">A03 de mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>SupplyChain.quote</code>,
 <code>fixtures/trusted/vendor/PriceRule.java</code>,
 <code>fixtures/compromised/vendor/PriceRule.java</code> y generación de
@@ -363,7 +442,36 @@ inmediatamente; no cambia permanentemente la siguiente petición. Los
 únicos canales permitidos son los dos fixtures locales. La falta de
 control del proceso de actualización es el foco A03; la integridad
 también se relaciona con A08.</p>
-<h2 id="a04--fallas-criptográficas">A04 — Fallas criptográficas</h2>
+<h2 id="a04-fallas-criptográficas">A04 — Fallas criptográficas</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li>La versión original obtiene los hashes llamando a MD5 directamente
+sobre la contraseña. No incorpora un <strong>salt</strong>, un valor
+aleatorio diferente por contraseña almacenada. Por eso Alice y Bob
+producen el mismo resultado mientras ambos usan
+<code>demo123</code>.</li>
+<li>MD5 permite calcular candidatos con poco trabajo. Quien obtiene un
+hash puede tomar palabras de un diccionario, calcular su MD5 y
+compararlo con el valor robado.</li>
+<li>El bucle de PowerShell hace exactamente esa comparación con tres
+palabras. Al encontrar <code>demo123</code>, identifica una contraseña
+que produce el hash observado. No descifra el hash ni necesita hallar
+una colisión entre entradas distintas.</li>
+<li>El endpoint público <code>/api/a04/hashes</code> proporciona los
+valores al ejercicio. En una aplicación real, un volcado de
+almacenamiento o respaldo filtrado también podría proporcionar hashes:
+cerrar el endpoint no corrige por sí solo el algoritmo.</li>
+</ol>
+<p>El ataque al diccionario ocurre localmente después de obtener los
+hashes; no requiere un intento de login por cada palabra. El salt
+dificulta reutilizar cálculos entre cuentas, y una función lenta para
+contraseñas encarece cada prueba.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> con A04 aplicado,
+esta ruta devuelve 404 intencionalmente y <code>Invoke-RestMethod</code>
+interrumpe el ejemplo antes del diccionario. Eso confirma el cierre de
+la exposición, no demuestra por sí solo PBKDF2. Verifica además el
+almacenamiento y el login como explica <a
+href="../MITIGACIONES.html#a04">A04 de mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>LabState.md5</code> y almacenamiento
 <code>passwordHashes</code>. El endpoint de hashes facilita observar un
 volcado ficticio; el fallo criptográfico es MD5 sin salt.</p>
@@ -382,7 +490,32 @@ diccionario de tres entradas. Alice y Bob tienen el mismo hash antes de
 A07. Después del restablecimiento de Bob sus hashes serán distintos. No
 se requiere un ataque de colisiones: la velocidad de MD5 y la falta de
 salt permiten probar contraseñas fácilmente.</p>
-<h2 id="a05--inyección">A05 — Inyección</h2>
+<h2 id="a05-inyección">A05 — Inyección</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li>La versión vulnerable arma el texto SQL sumando el valor de
+<code>name</code> entre comillas. Así, la entrada del cliente acaba en
+el mismo texto que contiene las instrucciones de la consulta.</li>
+<li>La comilla inicial de <code>' OR '1'='1</code> cierra el valor que
+debía representar el nombre. El resto añade una condición SQL:
+<code>OR '1'='1'</code>.</li>
+<li>Esa igualdad es verdadera para todas las filas. Por tanto, basta con
+ella para que el <code>WHERE</code> acepte cada cliente, aunque su
+nombre no coincida con el solicitado.</li>
+<li><code>createStatement().executeQuery(query)</code> ejecuta la
+consulta ya manipulada. Además, la selección incluye
+<code>private_note</code> y la respuesta la publica como
+<code>privateNote</code>, ampliando la información expuesta.</li>
+</ol>
+<p>El problema aparece cuando un dato externo puede cambiar las
+instrucciones que interpretará la base de datos.
+<code>--data-urlencode</code> solo transporta correctamente las comillas
+en HTTP; no es una defensa contra SQL.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> con parámetros, ese
+texto se busca como nombre literal y devuelve cero registros;
+<code>Alice</code> sigue devolviendo uno. El código corregido también
+deja de publicar notas privadas y SQL. Consulta <a
+href="../MITIGACIONES.html#a05">A05 de mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>LabServer.customers</code>. SQL real
 ejecutado por H2, construido por concatenación.</p>
 <div class="sourceCode" id="cb5"><pre
@@ -395,7 +528,32 @@ es:</p>
 class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="kw">id</span>, name, private_note <span class="kw">FROM</span> customers <span class="kw">WHERE</span> name <span class="op">=</span> <span class="st">&#39;&#39;</span> <span class="kw">OR</span> <span class="st">&#39;1&#39;</span><span class="op">=</span><span class="st">&#39;1&#39;</span></span></code></pre></div>
 <p>Si pruebas SQL destructivo adicional podrías modificar la base en
 memoria; reiniciar restaura los datos.</p>
-<h2 id="a06--diseño-inseguro">A06 — Diseño inseguro</h2>
+<h2 id="a06-diseño-inseguro">A06 — Diseño inseguro</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li><code>redeem</code> solo comprueba que el texto del cupón sea
+<code>WELCOME10</code>. Esa validación demuestra que el cupón existe,
+pero no que siga disponible para canje.</li>
+<li>Cada llamada válida ejecuta <code>state.wallet.addAndGet(10)</code>.
+El programa no tiene una bandera ni un registro que indique que el
+crédito ya se concedió.</li>
+<li>La segunda petición vuelve a superar exactamente la misma
+comprobación y vuelve a sumar diez pesos. La regla comercial «una vez»
+aparece en la descripción, pero no está representada en el estado ni en
+una condición del código.</li>
+</ol>
+<p><code>AtomicInteger</code> hace segura la suma individual entre
+hilos, pero no decide si esa suma está autorizada por las reglas del
+negocio. Incluso dos peticiones secuenciales, sin concurrencia, bastan
+para reproducir el abuso.</p>
+<p>El problema no requiere falsificar el cupón: se repite una operación
+válida más veces de las permitidas. Si solo se añadiera una comprobación
+sin coordinarla con la actualización, dos solicitudes simultáneas
+todavía podrían pasarla.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> el primer canje
+acredita diez; el segundo devuelve 409 sin aumentar el saldo. El
+registro y el bloqueo se explican en <a
+href="../MITIGACIONES.html#a06">A06 de mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>LabServer.redeem</code>. Regla de
 negocio: <code>WELCOME10</code> debe otorgar diez pesos solo una vez a
 la billetera de demostración. No existe registro de canjes.</p>
@@ -407,7 +565,33 @@ class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb7-
 necesita una carrera: repetir secuencialmente ya viola la regla. El
 identificador del cupón es válido; falta diseñar el control del ciclo de
 vida del canje.</p>
-<h2 id="a07--fallas-de-autenticación">A07 — Fallas de autenticación</h2>
+<h2 id="a07-fallas-de-autenticación">A07 — Fallas de autenticación</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li>La ruta acepta <code>user</code>, <code>token</code> y la contraseña
+nueva desde la petición. La comprobación original solo exige que la
+cuenta exista y que el token sea igual a
+<code>"reset-" + user</code>.</li>
+<li>El nombre de usuario no es un secreto. Para Bob se puede construir
+<code>reset-bob</code> sin recibir un correo, conocer su contraseña ni
+iniciar sesión.</li>
+<li>Superada esa comparación, <code>passwordHashes.put</code> reemplaza
+la contraseña de la cuenta. El siguiente login funciona con la elegida
+por quien hizo la petición.</li>
+<li>El servidor no guarda una autorización emitida con fecha de
+vencimiento ni la consume. El mismo texto puede usarse repetidamente.
+Tampoco revoca las sesiones ya creadas al cambiar la contraseña.</li>
+</ol>
+<p>El token debería demostrar que el solicitante obtuvo una autorización
+legítima. En este caso solo demuestra que conoce una regla de
+concatenación pública. Por eso se puede tomar control de una cuenta sin
+atacar el mecanismo de login.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> almacenar la
+contraseña nueva con PBKDF2, como hace A04, no corrige esta comprobación
+de identidad. A07 debe rechazar <code>reset-bob</code> y aceptar
+únicamente una autorización válida de un solo uso. El flujo disponible
+para la demo está en <a href="../MITIGACIONES.html#a07">A07 de
+mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>LabServer.resetPassword</code>. Token
 de recuperación derivado directamente del usuario.</p>
 <div class="sourceCode" id="cb8"><pre
@@ -418,8 +602,34 @@ haber acreditado acceso al correo ni a la cuenta de Bob.
 <code>reset-bob</code> se puede reutilizar y no caduca. La contraseña
 anterior deja de funcionar. Restablece el estado al terminar si quieres
 repetir otras prácticas desde cero.</p>
-<h2 id="a08--fallas-en-la-integridad-del-software-o-de-los-datos">A08 —
+<h2 id="a08-fallas-en-la-integridad-del-software-o-de-los-datos">A08 —
 Fallas en la integridad del software o de los datos</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li>La respuesta inicial entrega un carrito con producto, cantidad y
+precio codificado en Base64. Base64 cambia la representación del JSON,
+pero cualquiera puede decodificarlo, editarlo y volver a
+codificarlo.</li>
+<li>La petición de checkout devuelve el carrito desde el cliente. Aunque
+el servidor hubiera generado el original, ya no puede asumir que el
+contenido recibido sea el mismo.</li>
+<li>La versión vulnerable calcula <code>unitPrice * quantity</code>
+usando directamente ambos valores recibidos. No consulta el precio del
+producto en una fuente controlada por el servidor.</li>
+<li>El ejemplo conserva producto y cantidad, pero fija
+<code>unitPrice</code> en 1. Como la entrada se acepta como precio
+autorizado, el resultado del cálculo también es 1. Además, faltan
+controles de rango para cantidades y de desbordamiento del cálculo.</li>
+</ol>
+<p>El fallo es confiar en una decisión económica aportada por el
+cliente. Ocultar el campo en la interfaz o codificarlo no impide editar
+la petición. <code>integrityVerified: false</code> solo describe la
+respuesta; no valida ni protege nada.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> el carrito alterado
+puede aceptarse, pero cobra el precio del catálogo: 1000 por unidad. No
+todo intento de abuso necesita devolver un error si el dato manipulable
+se ignora de forma segura. Consulta <a href="../MITIGACIONES.html#a08">A08
+de mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>LabServer.checkout</code>. El carrito
 codificado en Base64 incluye el precio, sin firma ni validación contra
 catálogo.</p>
@@ -433,8 +643,35 @@ class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb9-
 <code>integrityVerified</code> es falso. Base64 solo codifica; no
 protege la integridad. A diferencia de A03, aquí se manipulan datos de
 una transacción y no un componente de software.</p>
-<h2 id="a09--fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
+<h2 id="a09-fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
 registro y alertas de seguridad</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li>El endpoint de demostración llama a <code>login</code> con
+<code>silent=true</code>. Ante una contraseña incorrecta, la versión
+original incrementa un contador y responde 401.</li>
+<li>Ese número permite observar cuántos fallos hubo en total, pero
+pierde cuenta intentada, hora, origen y relación entre intentos. No
+permite distinguir ocho fallos contra una cuenta de ocho errores
+independientes.</li>
+<li>No se emite un evento por intento ni se evalúa una regla que genere
+una alerta. Las listas vacías de telemetría reflejan esa ausencia de
+implementación.</li>
+<li>Sin registros suficientes, quien opera el sistema no puede
+reconstruir la secuencia ni recibir un aviso basado en ella. Que el
+intento se rechace correctamente no aporta por sí solo esa capacidad de
+detección.</li>
+</ol>
+<p>Aquí el resultado del ataque no es un login exitoso: es una actividad
+sospechosa que el sistema no deja registrada de forma útil. El contador
+global y el mensaje de arranque de Docker no sustituyen una auditoría de
+eventos. La ausencia en consola por sí sola tampoco probaría el fallo en
+cualquier sistema; en este laboratorio se confirma revisando el
+método.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> los ocho fallos
+siguen devolviendo 401, pero ahora producen eventos y una alerta local.
+La telemetría requiere sesión autorizada. Consulta <a
+href="../MITIGACIONES.html#a09">A09 de mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>LabServer.login</code> con
 <code>silent=true</code>. Se cuentan fallos para observarlos en clase,
 pero no se registra usuario, instante, origen, resultado ni correlación;
@@ -453,8 +690,33 @@ la ausencia de escritura de eventos en el método.</p>
 <p>El acceso con contraseña correcta aún funciona. El foco de este
 ejercicio es detectar y alertar, aunque la ausencia de límites de
 intentos también se relaciona con A07.</p>
-<h2 id="a10--manejo-inadecuado-de-condiciones-excepcionales">A10 —
-Manejo inadecuado de condiciones excepcionales</h2>
+<h2 id="a10-manejo-inadecuado-de-condiciones-excepcionales">A10 — Manejo
+inadecuado de condiciones excepcionales</h2>
+<p><strong>Por qué este código es vulnerable</strong></p>
+<ol type="1">
+<li>Con <code>riskService=online</code>, el simulador evalúa
+<code>amount &lt;= 500</code>. Para 1000 el resultado es falso, por lo
+que el pago debería rechazarse.</li>
+<li>Con <code>riskService=offline</code>, se lanza una excepción antes
+de completar esa evaluación. Esto significa «no fue posible decidir», no
+«el pago es seguro».</li>
+<li>El <code>catch</code> vulnerable convierte la falta de evaluación en
+permiso mediante <code>approved = true</code> y
+<code>reason = "fail-open"</code>.</li>
+<li>Después del <code>catch</code>, el flujo sigue hasta el incremento
+de <code>orders</code> porque <code>approved</code> quedó en verdadero.
+La excepción no solo cambia un mensaje: provoca que se complete una
+operación que normalmente se rechaza.</li>
+</ol>
+<p>Este comportamiento se llama <strong>fail-open</strong>: el sistema
+concede permiso cuando falla un control. En la demo, el cliente puede
+activar el interruptor para mostrarlo; en un sistema real, un timeout o
+una caída del proveedor podría activar el mismo camino si el manejo de
+errores estuviera mal diseñado.</p>
+<p><strong>Cómo interpretar la mitigación:</strong> online conserva el
+rechazo 403; offline pasa a 503, sin aumentar pedidos. El código debe
+salir antes de los efectos de aprobación, como explica <a
+href="../MITIGACIONES.html#a10">A10 de mitigaciones</a>.</p>
 <p><strong>Código:</strong> <code>LabServer.pay</code>. Se aprueba por
 defecto cuando el servicio antifraude lanza una excepción.</p>
 <div class="sourceCode" id="cb11"><pre
@@ -468,10 +730,13 @@ del laboratorio. No contacta servicios externos ni cobra dinero.</p>
 <h2 id="restablecer-y-corregir">Restablecer y corregir</h2>
 <div class="sourceCode" id="cb12"><pre
 class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> compose restart lab</span></code></pre></div>
-<p>Continúa con <a href="../MITIGACIONES.html">MITIGACIONES.html</a>. Los
-ejemplos son cambios propuestos; la versión entregada mantiene las
-fallas para poder enseñarlas. No existe una opción de configuración que
-convierta este laboratorio en una aplicación apta para producción.</p>
+<p>Continúa con <a href="../MITIGACIONES.html">MITIGACIONES.html</a>. Las
+demostraciones anteriores corresponden a la versión vulnerable original;
+las correcciones que hayas aplicado cambian sus resultados. Reiniciar
+crea datos nuevos con el código compilado actual, y los cambios Java
+requieren reconstruir la aplicación. No existe una opción de
+configuración que convierta este laboratorio en una aplicación apta para
+producción.</p>
 </main>
 <footer class="guide-footer"><a href="#inicio">Volver al inicio</a></footer>
 </body>
