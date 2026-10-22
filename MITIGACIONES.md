@@ -1,241 +1,749 @@
-# Mitigaciones específicas del laboratorio OWASP Top 10:2025
+# Mitigaciones listas para copiar y pegar — OWASP Top 10:2025
 
-Este archivo describe **cómo corregir cada vulnerabilidad de este proyecto**. Las correcciones son propuestas: no están aplicadas en la versión didáctica. Los fragmentos ilustran el cambio central y pueden requerir nuevos repositorios, tablas o servicios; no son parches completos para copiar sin adaptación.
+Esta guía contiene código completo para corregir **los diez escenarios de este laboratorio** durante una presentación. Los cambios se aplican manualmente; los archivos de la aplicación no se modifican al abrir la guía. Cada bloque indica el archivo y si debes reemplazar un método, agregar campos o cambiar un caso del enrutador.
 
-Para practicar, crea una rama de correcciones, implementa los cambios y transforma las pruebas de `src/test/java/mx/demo/owasp/LabServerTest.java` en pruebas que esperen el rechazo del abuso. Mantén también casos legítimos para evitar que una corrección consista simplemente en inutilizar la función.
+## Preparación y orden de aplicación
 
-La clasificación sigue [OWASP Top 10:2025](https://top10.owasp.org/2025/es/). Cada categoría puede abarcar muchas debilidades y algunos controles se complementan entre sí.
+- Copia el contenido de cada bloque, sin las marcas de Markdown. En HTML usa **Copiar**; si el navegador bloquea el portapapeles, el bloque quedará seleccionado para copiar con Ctrl+C.
+- Un método se reemplaza **completo**, incluida su firma y sus llaves. Los campos y métodos nuevos van dentro de la clase, fuera de otros métodos. Los `case` van dentro del `switch` de `LabServer.route`.
+- Los bloques usan los imports actuales o nombres de clase completos. Solo A04 crea un archivo Java nuevo, con sus imports incluidos. No hay que modificar `pom.xml`.
+- Puedes presentar cada escenario por separado, excepto **A07, que requiere A04**. Para aplicar todos: **A01 → A02 → A03 → A04 → A05 → A06 → A07 → A08 → A09 → A10**.
+- A01 puede estar ya corregido en tu copia: el método de esta guía conserva esa protección. A02 deshabilita admin; usa Alice como operadora al mostrar A09.
+- El código sigue siendo un laboratorio con datos en memoria. A03 retira la actualización dinámica; A06 conserva una única billetera; A07 ofrece cambio de contraseña con identidad verificada; A09 ofrece auditoría local. Cada sección distingue su alcance de las ampliaciones necesarias.
+
+## Compilar y presentar
+
+Los cambios Java requieren reconstruir y reiniciar; recargar la página no los aplica. Reiniciar borra contraseñas cambiadas, sesiones, canjes, saldo y registros.
+
+Las pruebas originales y `SmokeCheck` esperan vulnerabilidades: sus expectativas deben cambiar al aplicar mitigaciones. **No desactives las pruebas comentando todo el archivo.** Para una presentación puedes omitir temporalmente su ejecución mientras usas las comprobaciones de esta guía.
+
+**Con Java 21+ y Maven instalados**, desde la raíz del proyecto:
+
+```powershell
+mvn -DskipTests clean package
+java -jar target/owasp-lab.jar
+```
+
+En este caso el puerto es **8080**; cambia `$base` en los ejemplos PowerShell a `http://localhost:8080`.
+
+**Con Docker**, para esta modalidad de presentación, reemplaza exclusivamente la línea `RUN mvn -B -ntp clean verify` del `Dockerfile` por:
+
+```dockerfile
+RUN mvn -B -ntp -DskipTests clean package
+```
+
+Luego reconstruye y abre **http://localhost:18080**:
+
+```powershell
+docker compose up --build -d --wait
+docker compose logs lab
+```
+
+`-DskipTests` compila las pruebas pero omite ejecutarlas; **no certifica la mitigación**. Tras actualizar las pruebas a los resultados esperados, restaura `RUN mvn -B -ntp clean verify` y ejecuta `mvn clean verify` o reconstruye con Docker. Si las pruebas están comentadas, restáuralas y adapta las expectativas para recuperar esa validación.
+
+Los botones de la página muestran las respuestas HTTP. Después de mitigar es normal ver 403, 404 o 409 en los intentos de abuso. A04 deja de exponer hashes, por lo que su botón antiguo ya no podrá ejecutar el diccionario; verifica hashes en el depurador. A09 requiere ahora una sesión autorizada para consultar telemetría: usa su bloque PowerShell.
+
+## Índice de escenarios
+
+- [A01 — Pérdida de control de acceso](#a01)
+- [A02 — Configuración de seguridad incorrecta](#a02)
+- [A03 — Fallas en la cadena de suministro de software](#a03)
+- [A04 — Fallas criptográficas](#a04)
+- [A05 — Inyección](#a05)
+- [A06 — Diseño inseguro](#a06)
+- [A07 — Fallas de autenticación](#a07)
+- [A08 — Fallas en integridad de software o datos](#a08)
+- [A09 — Fallas en registro y alertas de seguridad](#a09)
+- [A10 — Manejo inadecuado de condiciones excepcionales](#a10)
+
+<a id="a01"></a>
 
 ## A01 — Pérdida de control de acceso
 
-**Ubicación:** `src/main/java/mx/demo/owasp/LabServer.java`, métodos `invoice` y `currentUser`; ruta `GET /api/a01/invoice`.
+**Archivo:** `src/main/java/mx/demo/owasp/LabServer.java`. Reemplaza el método `invoice` completo. No requiere imports nuevos. Si ya agregaste la comparación de propietario, este método la incluye.
 
-**Problema:** se exige sesión, pero cualquier usuario autenticado obtiene una factura de cualquier propietario al cambiar `id`. Autenticar no equivale a autorizar.
-
-**Cambios necesarios:**
-
-1. Obtén el propietario desde el almacenamiento del servidor y compáralo con el principal de la sesión antes de devolver datos.
-2. Implementa denegación por defecto y una política central para operaciones y objetos; un rol administrativo debe proceder del servidor, nunca de un campo enviado por el cliente.
-3. En una versión con base de datos, filtra por objeto **y propietario** en la misma consulta. No consideres los UUID una sustitución de la autorización.
-4. Protege igualmente lectura, modificación, listados y exportación. Evita confirmar la existencia de objetos ajenos cuando no sea necesario.
+<!-- snippet:A01-invoice -->
 
 ```java
-// En invoice, después de obtener owner y antes de construir la respuesta:
-if (!owner.equals(viewer)) {
-    json(x, 404, Map.of("error", "Factura no disponible"));
-    return;
+private void invoice(HttpExchange x, Map<String, String> p) throws IOException {
+    String viewer = currentUser(x);
+    if (viewer == null) {
+        json(x, 401, Map.of("error", "Inicia sesión"));
+        return;
+    }
+    String id = p.getOrDefault("id", "1001");
+    String owner = Map.of("1001", "alice", "1002", "bob").get(id);
+    if (owner == null || !owner.equals(viewer)) {
+        json(x, 404, Map.of("error", "Factura no disponible"));
+        return;
+    }
+    json(x, 200, Map.of("id", id, "owner", owner, "viewer", viewer,
+            "total", 1500, "address", "Domicilio ficticio de " + owner));
 }
 ```
 
-**Verificación:** Alice obtiene 1001; Alice no obtiene 1002 ni su domicilio; Bob obtiene 1002; un usuario sin sesión recibe 401. Cambia la expectativa de la prueba `a01AliceCanReadBobsInvoiceButAnonymousCannot` a 403/404 para la factura ajena.
+**Comprobación:** inicia sesión como Alice: 1001 devuelve 200; 1002 y un ID inexistente devuelven el mismo 404. Sin sesión devuelve 401. Bob conserva acceso a 1002.
+
+**Para ampliar:** aplica esta autorización también a modificación, listados y exportación; en una base de datos filtra por ID y propietario en la misma consulta.
+
+<a id="a02"></a>
 
 ## A02 — Configuración de seguridad incorrecta
 
-**Ubicación:** `LabServer.debug`, ruta `GET /api/a02/debug`, credenciales iniciales en `LabState`.
+**Paso 1 — `LabServer.java`:** reemplaza el método `debug`. Al eliminar su cuerpo anterior también desaparece el CORS permisivo.
 
-**Problema:** diagnóstico público con credenciales funcionales, secreto ficticio y CORS permisivo. No basta con ocultar el enlace en la página.
+<!-- snippet:A02-debug -->
 
-**Cambios necesarios:**
+```java
+private void debug(HttpExchange x) throws IOException {
+    json(x, 404, Map.of("error", "Ruta o método no disponible"));
+}
+```
 
-1. Elimina la ruta de diagnóstico de la distribución de producción o regístrala solo en un perfil local explícito. Si se conserva para operación, exige una autorización administrativa independiente y devuelve campos permitidos de forma expresa.
-2. No serialices variables de entorno, credenciales ni configuración completa. Sustituye secretos incrustados por un gestor de secretos y rota las credenciales expuestas; eliminarlas del HTML no revoca su uso.
-3. Quita `Access-Control-Allow-Origin: *`; la aplicación usa el mismo origen y no lo necesita. Cuando haya otro cliente web, configura una lista exacta de orígenes y revisa métodos/cabeceras.
-4. Añade cabeceras apropiadas, como `X-Content-Type-Options: nosniff` y una CSP. Mueve el JavaScript inline de `index.html` a un recurso propio para usar una política `script-src 'self'` sin habilitar ejecución inline indiscriminada.
-5. Deshabilita cuentas de demostración, depuración y respuestas detalladas de excepciones en una aplicación real. Conserva diagnósticos internos sin secretos.
+**Paso 2 — `LabState.java`:** agrega esta línea al final del constructor `LabState()`, después de crear los usuarios y las tablas. La cuenta expuesta deja de existir en cada arranque. Si A04 se aplica después, conserva esta línea.
 
-**Verificación:** un visitante recibe 404/403 en `/api/a02/debug`; ninguna respuesta contiene `admin123` o la clave ficticia; `admin/admin123` deja de autenticar. Una petición de origen no autorizado no obtiene permiso CORS. CORS es un control del navegador, no reemplaza autorización.
+<!-- snippet:A02-admin -->
+
+```java
+passwordHashes.remove("admin");
+```
+
+**Paso 3 — `LabServer.java`:** agrega estas cabeceras al principio del método `send`, antes de `sendResponseHeaders`.
+
+<!-- snippet:A02-headers -->
+
+```java
+x.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
+x.getResponseHeaders().set("X-Frame-Options", "DENY");
+x.getResponseHeaders().set("Referrer-Policy", "no-referrer");
+```
+
+**Comprobación:** `GET /api/a02/debug` devuelve 404 sin credenciales ni permiso CORS; `admin/admin123` devuelve 401. Alice y Bob siguen disponibles para los demás ejercicios. Reconstruye y reinicia para que la eliminación del usuario surta efecto.
+
+**Para ampliar:** las cuentas de Alice y Bob siguen siendo datos de demostración. En una aplicación real elimina cuentas de ejemplo, rota secretos expuestos y configura un gestor de secretos. Para una CSP estricta, extrae primero el JavaScript inline de la página a un recurso servido por el backend; estas cabeceras no sustituyen ese trabajo.
+
+<a id="a03"></a>
 
 ## A03 — Fallas en la cadena de suministro de software
 
-**Ubicación:** `src/main/java/mx/demo/owasp/SupplyChain.java`, método `quote`; `fixtures/`; plugins/dependencias de `pom.xml`; imágenes base de `Dockerfile`.
+**Opción de presentación:** retirar la carga dinámica y compilar la regla aprobada con la aplicación. El cliente ya no puede instalar ni ejecutar un JAR. Se conserva el precio legítimo de 1000. Esta opción reduce la funcionalidad de actualización; no pretende implementar firmas de artefactos.
 
-**Problema:** el proceso de actualización carga y ejecuta la clase de un proveedor sin acreditar procedencia ni aprobación. Los dos JAR locales permiten observar el mismo riesgo sin descargar software malicioso.
+**Paso 1:** reemplaza **todo** `src/main/java/mx/demo/owasp/SupplyChain.java` por:
 
-**Cambios necesarios:**
-
-1. Retira del cliente web la posibilidad de seleccionar una actualización. Instala componentes mediante un flujo administrativo con revisión y aprobación.
-2. Usa un registro de artefactos de confianza, versiones inmutables, firma y procedencia verificables. Mantén claves de confianza fuera del control del artefacto descargado.
-3. Verifica el contenido **antes** de crear `URLClassLoader`. Un digest esperado debe provenir de una referencia previamente aprobada, no del mismo repositorio potencialmente comprometido.
-4. Mantén SBOM de dependencias directas, transitivas, plugins, JDK e imagen del sistema operativo. Integra análisis de composición de software, revisión de avisos y actualizaciones con responsables y plazos.
-5. Protege CI/CD, ramas y registros con mínimo privilegio, revisión, MFA y credenciales de alcance limitado. Promueve el mismo artefacto validado entre entornos y usa despliegues graduales.
-6. Fija imágenes por digest si necesitas builds reproducibles y actualiza esos digests de manera controlada. No confundas fijar versiones con mantenerlas actualizadas.
+<!-- snippet:A03-supply -->
 
 ```java
-// Ejemplo conceptual antes de cargar el JAR; expectedDigest viene de una
-// configuración aprobada y protegida, nunca del parámetro channel.
-byte[] actual = MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(jar));
-if (!MessageDigest.isEqual(expectedDigest, actual)) {
-    throw new SecurityException("Artefacto no aprobado");
-}
-// Además: validar firma/procedencia con una raíz de confianza independiente.
-```
+package mx.demo.owasp;
 
-Un checksum coincidente no acredita por sí solo quién produjo el software. La firma tampoco garantiza que un proveedor confiable no haya introducido código defectuoso: se necesitan revisión, pruebas y respuesta a compromisos.
+final class SupplyChain {
+    private SupplyChain() { }
 
-**Verificación:** el artefacto aprobado mantiene el precio 1000; el fixture comprometido se rechaza **antes de invocar** `PriceRule.apply`. Un archivo alterado, firma desconocida, versión no aprobada o ausencia del servicio de verificación no deben habilitar su carga. Sustituye las expectativas de `a03CompromisedSupplierJarActuallyChangesExecutedCode`.
-
-## A04 — Fallas criptográficas
-
-**Ubicación:** `LabState.md5`, `passwordHashes`, `LabServer.login`, `resetPassword` y `/api/a04/hashes`.
-
-**Problema:** MD5 sin salt permite identificar contraseñas iguales y probar diccionarios rápidamente. El volcado del ejercicio representa acceso a hashes robados.
-
-**Cambios necesarios:**
-
-1. Sustituye MD5 por una implementación mantenida de Argon2id con salt único por contraseña y coste ajustado al servicio. No sustituyas MD5 por SHA-256 simple: sigue siendo rápido para ataques de diccionario.
-2. Encapsula almacenamiento y verificación en un servicio de contraseñas, para que `login` y `resetPassword` usen la misma política. Guarda algoritmo, parámetros y salt junto al hash.
-3. Migra gradualmente: verifica un hash legado solo durante el acceso válido, recalcula inmediatamente el hash moderno y elimina el anterior. Fuerza restablecimiento para cuentas que no se migren o que se consideren comprometidas.
-4. Elimina `/api/a04/hashes` de una distribución real. Limita acceso al almacenamiento y a sus respaldos.
-5. Para datos reversibles sensibles, usa cifrado autenticado y gestión de claves con rotación; no uses el algoritmo de hashing de contraseñas como cifrado. Usa TLS y cookies `Secure` cuando la aplicación se sirva por HTTPS.
-
-**Verificación:** Alice y Bob tienen hashes almacenados distintos aun con la misma contraseña; ambas verifican correctamente; una contraseña incorrecta no verifica; el diccionario MD5 deja de reproducir el hash. Revisa parámetros y coste en el entorno de ejecución real, sin escribir criptografía propia.
-
-Referencia: [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
-
-## A05 — Inyección
-
-**Ubicación:** `LabServer.customers`, `GET /api/a05/customers`.
-
-**Problema:** `name` pasa a formar parte de la sintaxis SQL. El valor `' OR '1'='1` cambia el significado de la consulta.
-
-**Cambio principal:** reemplaza la concatenación y `Statement` por SQL fijo con `PreparedStatement` y parámetros enlazados.
-
-```java
-String query = "SELECT id, name, private_note FROM customers WHERE name = ?";
-try (var connection = DriverManager.getConnection(state.databaseUrl);
-     var statement = connection.prepareStatement(query)) {
-    statement.setString(1, p.getOrDefault("name", "Alice"));
-    try (var results = statement.executeQuery()) {
-        // Construir una respuesta que contenga solo los campos autorizados.
+    static int quote(String channel, int price) {
+        if (!"trusted".equals(channel)) {
+            throw new SecurityException("Actualización no aprobada");
+        }
+        if (price < 0) throw new IllegalArgumentException("Precio inválido");
+        // Regla revisada y compilada con la aplicación; no carga código externo.
+        return price;
     }
 }
 ```
 
-Valida además longitud y formato de entrada por reglas de negocio. No uses listas de palabras prohibidas ni escapes manuales como sustituto de parámetros. Para identificadores SQL dinámicos que no admitan parámetros, usa una selección de valores permitidos controlada por el servidor. Reduce privilegios de la cuenta de base de datos y no devuelvas SQL ni notas privadas a usuarios no autorizados.
+**Paso 2 — `LabServer.route`:** reemplaza el bloque completo `case "POST /api/a03/update"` por:
 
-**Verificación:** `Alice` devuelve el registro permitido; el payload se trata como un nombre literal y devuelve cero filas, sin error SQL ni notas ajenas. Prueba también nombres legítimos con apóstrofos. La parametrización no reemplaza los controles de acceso de A01.
-
-## A06 — Diseño inseguro
-
-**Ubicación:** `LabServer.redeem`, `LabState.wallet`.
-
-**Problema:** el requisito de un canje por billetera no está representado en el modelo. La operación suma saldo en cada llamada aunque el cupón ya se haya consumido.
-
-**Cambios necesarios:**
-
-1. Define el invariante: un usuario autenticado puede canjear cada campaña como máximo una vez; la billetera de destino procede del servidor.
-2. Introduce una tabla de canjes con restricción única `(user_id, campaign_id)`. El registro del canje y el crédito deben ocurrir en una única transacción.
-3. Si la inserción encuentra un canje existente, devuelve 409 o la respuesta idempotente original sin volver a acreditar saldo.
-4. Protege también llamadas concurrentes. La secuencia «consultar si existe, luego insertar» sin restricción/transacción permite carreras.
-5. Define caducidad, presupuesto de campaña, elegibilidad y recuperación ante fallos antes de implementar promociones.
-
-```sql
-CREATE TABLE coupon_redemptions (
-    user_id VARCHAR(80) NOT NULL,
-    campaign_id VARCHAR(80) NOT NULL,
-    redeemed_at TIMESTAMP NOT NULL,
-    PRIMARY KEY (user_id, campaign_id)
-);
--- En la misma transacción: INSERT del canje + UPDATE de la billetera.
-```
-
-**Verificación:** primer canje 100 → 110; segundo canje mantiene 110. Varias peticiones simultáneas solo generan un crédito. Si se inyecta un fallo después de registrar el canje pero antes de acreditar el saldo, se revierte toda la transacción.
-
-## A07 — Fallas de autenticación
-
-**Ubicación:** `LabServer.resetPassword`, `login`, `currentUser`; mapas de contraseñas y sesiones en `LabState`.
-
-**Problema:** `reset-<usuario>` puede calcularse sin probar identidad, no caduca y se reutiliza. El cambio de contraseña tampoco revoca sesiones existentes.
-
-**Cambios necesarios:**
-
-1. Genera tokens opacos con `SecureRandom` y entropía suficiente, por ejemplo 32 bytes aleatorios codificados en Base64url.
-2. Envía el token por un canal previamente verificado. No lo devuelvas a quien solicita un restablecimiento en una API pública.
-3. Almacena un hash del token ligado al usuario, propósito, caducidad y estado de consumo. Consúmelo y cambia la contraseña de forma atómica. Aquí un hash criptográfico rápido de un token de alta entropía tiene un propósito distinto del hashing de contraseñas.
-4. Devuelve respuestas uniformes al solicitar recuperación para no enumerar cuentas. Limita intentos y solicitudes por cuenta y origen con una política que contemple abuso y usuarios legítimos.
-5. Revoca sesiones después del restablecimiento, rota identificadores al autenticar y establece expiración de sesiones. Agrega MFA a operaciones y cuentas de riesgo.
+<!-- snippet:A03-route -->
 
 ```java
-byte[] random = new byte[32];
-new java.security.SecureRandom().nextBytes(random);
-String token = Base64.getUrlEncoder().withoutPadding().encodeToString(random);
-// Persistir solo su hash + usuario + expiresAt + consumedAt; entregar por canal verificado.
-```
-
-**Verificación:** `reset-bob` se rechaza; un token válido funciona una sola vez y solo para Bob; tokens caducados, reutilizados o de otro usuario no cambian contraseñas. La contraseña anterior y las sesiones anteriores dejan de funcionar tras un cambio válido.
-
-## A08 — Fallas en integridad de software o datos
-
-**Ubicación:** `LabServer.checkout`, `/api/a08/cart`.
-
-**Problema:** `unitPrice` recibido en un carrito Base64 decide cuánto cobrar. No se acredita integridad ni autoridad del dato.
-
-**Cambios necesarios:**
-
-1. Acepta del cliente SKU y cantidad. Resuelve precio, descuentos, impuestos y disponibilidad a partir de información confiable del servidor.
-2. Valida SKU existente, cantidad positiva y límites. Calcula importes con unidades monetarias enteras y comprobación de overflow, o `BigDecimal` con reglas explícitas de redondeo.
-3. Si necesitas cotizaciones transportadas por el cliente, emite un identificador opaco almacenado en el servidor o firma los datos con una librería apropiada, incorporando usuario, audiencia, expiración y nonce. Verifica antes de usar y aplica controles de repetición.
-4. Revalida condiciones relevantes al confirmar el pedido. Una firma sobre datos elegidos por el atacante no hace confiable el precio.
-
-```java
-// Ejemplo de catálogo bajo control del servidor:
-int unitPrice = catalog.priceOf(sku);
-if (quantity < 1 || quantity > 10) throw new IllegalArgumentException();
-int total = Math.multiplyExact(unitPrice, quantity);
-```
-
-**Verificación:** cambiar `unitPrice` a 1 se rechaza o se ignora y el total sigue siendo 1000. SKU desconocido, cantidades negativas/excesivas y una cotización vencida se rechazan. Si implementas firma, modificar un byte o reutilizar una cotización consumida no debe generar un pedido.
-
-## A09 — Fallas en registro y alertas de seguridad
-
-**Ubicación:** `LabServer.login` con `silent=true`, `observedLoginFailures` y `/api/a09/telemetry`.
-
-**Problema:** se omite emitir evidencia útil sobre fallos de acceso. El contador global didáctico no permite reconstruir quién intentó acceder, cuándo, desde dónde ni qué regla se activó. Las listas vacías representan un sistema de auditoría y alertas ausente.
-
-**Cambios necesarios:**
-
-1. Crea un servicio de auditoría que emita eventos estructurados para login, recuperación, denegaciones de autorización, actualizaciones de componentes y operaciones privilegiadas.
-2. Incluye hora UTC, tipo, identificador de correlación, actor o cuenta objetivo, resultado y origen confiable. No confíes directamente en `X-Forwarded-For` si no procede de un proxy controlado.
-3. No registres contraseñas, cookies, tokens ni datos personales innecesarios. Usa serialización estructurada para que caracteres de control no creen eventos falsos.
-4. Envía eventos a almacenamiento central con control de acceso, retención y protección contra modificación. Monitorea también pérdida de eventos y fallos del canal de auditoría.
-5. Conecta reglas de detección con un canal real de atención. Como criterio didáctico, ocho fallos para una cuenta en cinco minutos deben crear una alerta verificable. Ajusta umbrales reales con métricas y análisis del servicio.
-6. En las pruebas usa un emisor en memoria con reloj controlable; en operación verifica la entrega al sistema de monitoreo y el procedimiento de respuesta.
-
-```java
-// Punto de integración conceptual antes de responder 401:
-audit.emit(new SecurityEvent("LOGIN_FAILED", clock.instant(),
-        correlationId, user, trustedSource, "DENIED"));
-```
-
-**Verificación:** ocho intentos fallidos producen ocho eventos sin secretos y al menos una alerta según la regla; el evento permite correlacionar la secuencia. Una contraseña con saltos de línea no genera entradas adicionales. Simula indisponibilidad del receptor y comprueba la política de búfer/aviso; no basta con que `docker compose logs` muestre cualquier texto.
-
-## A10 — Manejo inadecuado de condiciones excepcionales
-
-**Ubicación:** `LabServer.pay`, bloque `catch (IllegalStateException)`.
-
-**Problema:** una excepción de una dependencia de seguridad se interpreta como aprobación. El pago de 1000, rechazado normalmente, se completa cuando el antifraude falla.
-
-**Cambios necesarios:**
-
-1. Sustituye `approved = true` en el `catch` por rechazo seguro o estado pendiente sin efectos financieros. No confundas fallo de evaluación con resultado aprobado.
-2. Define un contrato explícito para `APPROVED`, `REJECTED` y `UNAVAILABLE`. Captura excepciones esperadas concretas y evita capturas amplias que oculten fallos de programación.
-3. Aplica timeouts, reintentos limitados solo cuando sean seguros, circuit breaker e idempotencia. No generes duplicados al reintentar pagos.
-4. Mantén consistencia transaccional: no incrementes pedidos ni alteres saldos antes de la aprobación válida; revierte cambios parciales.
-5. Registra el fallo con correlación sin filtrar trazas internas al cliente. Devuelve un error temporal uniforme, por ejemplo 503, o un estado pendiente explícito según el contrato.
-6. Retira `riskService=offline` de la API de producción; conserva la inyección de fallos en dobles de prueba o herramientas internas controladas.
-
-```java
-catch (RiskServiceUnavailableException exception) {
-    audit.recordDependencyFailure("risk", correlationId);
-    json(x, 503, Map.of("approved", false, "error", "No fue posible evaluar el pago"));
-    return; // No modificar completedOrders ni efectuar cargos.
+case "POST /api/a03/update" -> {
+    try {
+        int price = SupplyChain.quote(p.getOrDefault("channel", "trusted"), 1000);
+        json(x, 200, Map.of("component", "built-in.PriceRule",
+                "channel", "trusted", "catalogPrice", 1000,
+                "chargedPrice", price, "dynamicLoading", false));
+    } catch (SecurityException exception) {
+        json(x, 403, Map.of("error", "Actualización no aprobada"));
+    }
 }
 ```
 
-**Verificación:** la misma operación de 1000 nunca se aprueba durante caída, timeout o respuesta inválida del antifraude. `completedOrders` permanece igual. Un importe legítimo aprobado se completa una sola vez y un reintento con la misma clave de idempotencia no duplica la operación.
+**Comprobación:** `channel=trusted` devuelve 200 y `chargedPrice=1000`; `channel=compromised` y rutas arbitrarias devuelven 403. Ningún JAR de `fixtures` se carga ni se ejecuta, aunque Maven aún los genere. No se declara una firma verificada que no existe.
 
-## Orden de trabajo y aceptación
+**Si necesitas conservar actualizaciones dinámicas:** requieren un flujo administrativo y validar digest aprobado, firma y procedencia antes de crear un cargador de clases. La referencia de confianza debe ser independiente de la descarga. Revisa dependencias, plugins, imágenes, SBOM y permisos de CI/CD; este parche resuelve el escenario de carga dinámica del laboratorio.
 
-Para una rama de correcciones de este laboratorio, aborda primero autorización, autenticación, SQL y decisiones ante fallos (A01/A07/A05/A10); después protege diagnóstico y almacenamiento de contraseñas (A02/A04), las reglas comerciales y los datos (A06/A08), y el proceso de actualización y la observabilidad (A03/A09). Esto es una secuencia pedagógica, no una priorización universal por riesgo.
+<a id="a04"></a>
 
-Una corrección termina cuando funciona el caso legítimo, se rechaza el abuso documentado y existen pruebas de regresión del comportamiento esperado. Las medidas Docker actuales reducen exposición, pero no sustituyen ninguno de estos cambios. No publiques este proyecto como producto real sin completar una revisión de seguridad más amplia.
+## A04 — Fallas criptográficas
+
+**Paso 1:** crea `src/main/java/mx/demo/owasp/Passwords.java` con el contenido completo siguiente. Usa PBKDF2-HMAC-SHA256 del JDK, salt aleatorio de 16 bytes, 600 000 iteraciones y una clave de 256 bits; no agrega dependencias Maven. Argon2id es la primera opción general de OWASP; aquí se elige PBKDF2 para facilitar una demostración con el JDK existente. El coste indicado coincide con la [guía de almacenamiento de contraseñas de OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+
+<!-- snippet:A04-passwords -->
+
+```java
+package mx.demo.owasp;
+
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Base64;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+
+final class Passwords {
+    private static final int ITERATIONS = 600_000;
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    private Passwords() { }
+
+    static String hash(String password) throws GeneralSecurityException {
+        if (password == null || password.length() > 1024) {
+            throw new IllegalArgumentException("Contraseña inválida");
+        }
+        byte[] salt = new byte[16];
+        RANDOM.nextBytes(salt);
+        byte[] derived = derive(password, salt);
+        return "pbkdf2-sha256$" + ITERATIONS + "$"
+                + Base64.getEncoder().encodeToString(salt) + "$"
+                + Base64.getEncoder().encodeToString(derived);
+    }
+
+    static boolean verify(String password, String stored) throws GeneralSecurityException {
+        if (password == null || password.length() > 1024 || stored == null) return false;
+        String[] parts = stored.split("\\$", -1);
+        if (parts.length != 4 || !parts[0].equals("pbkdf2-sha256")
+                || !parts[1].equals(Integer.toString(ITERATIONS))) return false;
+        try {
+            byte[] salt = Base64.getDecoder().decode(parts[2]);
+            byte[] expected = Base64.getDecoder().decode(parts[3]);
+            return salt.length == 16 && expected.length == 32
+                    && MessageDigest.isEqual(expected, derive(password, salt));
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    private static byte[] derive(String password, byte[] salt) throws GeneralSecurityException {
+        char[] characters = password.toCharArray();
+        PBEKeySpec spec = new PBEKeySpec(characters, salt, ITERATIONS, 256);
+        try {
+            return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+                    .generateSecret(spec).getEncoded();
+        } finally {
+            spec.clearPassword();
+            Arrays.fill(characters, '\0');
+        }
+    }
+}
+```
+
+**Paso 2 — `LabState()`:** reemplaza las tres líneas que inicializan hashes con `md5` por:
+
+<!-- snippet:A04-seed -->
+
+```java
+passwordHashes.put("alice", Passwords.hash("demo123"));
+passwordHashes.put("bob", Passwords.hash("demo123"));
+passwordHashes.put("admin", Passwords.hash("admin123"));
+```
+
+Si aplicaste A02, conserva `passwordHashes.remove("admin");` al final del constructor.
+
+**Paso 3 — `LabServer.login`:** reemplaza exclusivamente estas dos líneas:
+
+`String hash = LabState.md5(p.getOrDefault("password", ""));`\
+`if (!hash.equals(state.passwordHashes.get(user))) {`
+
+por el siguiente bloque. El resto del método se conserva, incluido su cierre de llave.
+
+<!-- snippet:A04-login -->
+
+```java
+if (!Passwords.verify(p.getOrDefault("password", ""), state.passwordHashes.get(user))) {
+```
+
+**Paso 4 — `LabServer.resetPassword`:** sustituye la línea que guarda `LabState.md5(...)` por:
+
+<!-- snippet:A04-reset -->
+
+```java
+state.passwordHashes.put(user, Passwords.hash(p.getOrDefault("password", "changed123")));
+```
+
+A07 reemplazará después el método completo para corregir la identidad y el token. Este paso solo evita volver a guardar MD5 mientras presentas A04.
+
+**Paso 5 — `LabServer.route`:** reemplaza el caso completo de `GET /api/a04/hashes` por:
+
+<!-- snippet:A04-route -->
+
+```java
+case "GET /api/a04/hashes" ->
+        json(x, 404, Map.of("error", "Ruta o método no disponible"));
+```
+
+**Comprobación:** Alice y Bob siguen entrando con `demo123`; una contraseña incorrecta falla y el endpoint de hashes devuelve 404. En el depurador, sus hashes empiezan con `pbkdf2-sha256$600000$` y son distintos pese a compartir contraseña. La comprobación usa `Passwords.verify`, nunca compara dos resultados de `Passwords.hash`.
+
+**Alcance:** reiniciar recrea las cuentas del laboratorio; no hay hashes persistentes que migrar. El método `LabState.md5` puede quedarse sin llamadas para que las pruebas didácticas antiguas sigan compilando. En un sistema persistente implementa migración durante un login válido o restablecimiento forzado; no habilites MD5 como alternativa indefinida.
+
+<a id="a05"></a>
+
+## A05 — Inyección
+
+**Archivo:** `LabServer.java`. Reemplaza `customers` completo. Utiliza los imports JDBC y de colecciones que ya existen. La respuesta deja de incluir SQL y notas privadas; el catálogo de nombres del ejercicio sigue siendo público.
+
+<!-- snippet:A05-customers -->
+
+```java
+private void customers(HttpExchange x, Map<String, String> p) throws Exception {
+    String name = p.getOrDefault("name", "Alice");
+    if (name.length() > 80) {
+        json(x, 400, Map.of("error", "Nombre demasiado largo"));
+        return;
+    }
+    String query = "SELECT id, name FROM customers WHERE name = ?";
+    var rows = new ArrayList<Map<String, Object>>();
+    try (var connection = DriverManager.getConnection(state.databaseUrl);
+         var statement = connection.prepareStatement(query)) {
+        statement.setString(1, name);
+        try (var results = statement.executeQuery()) {
+            while (results.next()) {
+                rows.add(Map.of("id", results.getInt("id"), "name", results.getString("name")));
+            }
+        }
+    }
+    json(x, 200, Map.of("count", rows.size(), "customers", rows));
+}
+```
+
+**Comprobación:** `name=Alice` devuelve una fila; `name=' OR '1'='1` devuelve cero. Un nombre con apóstrofo se trata como dato sin provocar un error SQL.
+
+**Para ampliar:** si estos datos requieren privacidad, agrega autenticación y filtrado por propietario. Los parámetros SQL evitan inyección, pero no implementan autorización. Usa una cuenta SQL con privilegios mínimos.
+
+<a id="a06"></a>
+
+## A06 — Diseño inseguro
+
+**Regla del laboratorio:** existe una sola billetera compartida de 100 pesos; WELCOME10 se canjea una vez por esa billetera durante la vida del servidor. El parche conserva ese modelo y los botones actuales. Reiniciar crea una billetera nueva.
+
+**Paso 1 — `LabState.java`:** agrega este campo dentro de la clase, fuera del constructor y de cualquier método:
+
+<!-- snippet:A06-field -->
+
+```java
+boolean welcomeRedeemed = false; // Leer y escribir únicamente bajo synchronized (state).
+```
+
+**Paso 2 — `LabServer.java`:** reemplaza `redeem` completo. El bloqueo protege tanto la comprobación como el crédito y el registro del canje; dos peticiones concurrentes no pueden acreditar dos veces.
+
+<!-- snippet:A06-redeem -->
+
+```java
+private void redeem(HttpExchange x, Map<String, String> p) throws IOException {
+    if (!"WELCOME10".equals(p.get("coupon"))) {
+        json(x, 400, Map.of("error", "Cupón inválido"));
+        return;
+    }
+    int status;
+    Map<String, Object> response;
+    synchronized (state) {
+        if (state.welcomeRedeemed) {
+            status = 409;
+            response = Map.of("error", "Cupón ya utilizado",
+                    "balance", state.wallet.get(), "credit", 0);
+        } else {
+            int balance = Math.addExact(state.wallet.get(), 10);
+            state.wallet.set(balance);
+            state.welcomeRedeemed = true;
+            status = 200;
+            response = Map.of("balance", balance, "credit", 10);
+        }
+    }
+    json(x, status, response);
+}
+```
+
+**Comprobación:** primer canje devuelve 200 y saldo 110; el segundo devuelve 409 y saldo 110. Repite con llamadas concurrentes: exactamente una se acepta. Un cupón incorrecto devuelve 400 sin cambiar el saldo.
+
+**Para una billetera por usuario o varios procesos:** identifica al propietario por sesión y persiste canjes con clave única `(user_id, campaign_id)`; inserción y crédito deben ocurrir en una transacción. El bloqueo en memoria de este ejemplo solo cubre la instancia única del laboratorio; no persiste ante reinicios ni coordina réplicas.
+
+<a id="a07"></a>
+
+## A07 — Fallas de autenticación
+
+**Dependencia: aplica A04 primero.** Los métodos siguientes usan `Passwords`. Aplica A09 después, porque modifica el bloque de fallo de este `login`.
+
+El laboratorio no tiene correo verificado. Para mostrar un flujo legítimo sin inventar un servicio de entrega, se agrega **emisión de token solo con sesión válida y contraseña actual**. La recuperación de una cuenta cuya contraseña se olvidó queda pendiente de un canal verificado. Ningún solicitante anónimo obtiene tokens.
+
+**Paso 1 — `LabState.java`:** agrega estos campos y el record dentro de la clase, fuera de los métodos:
+
+<!-- snippet:A07-state -->
+
+```java
+record ResetGrant(String digest, long expiresAt) { }
+final Map<String, ResetGrant> resetGrants = new ConcurrentHashMap<>();
+final Map<String, Long> sessionExpires = new ConcurrentHashMap<>();
+```
+
+**Paso 2 — `LabServer.java`:** reemplaza `login` completo por este método. El bloqueo compartido con el restablecimiento impide crear una sesión con la contraseña anterior mientras se cambia. Mantiene las cookies locales HTTP del laboratorio; en HTTPS agrega `Secure`.
+
+<!-- snippet:A07-login -->
+
+```java
+private void login(HttpExchange x, Map<String, String> p, boolean silent) throws Exception {
+    String user = p.getOrDefault("user", "");
+    String session;
+    synchronized (state) {
+        if (!Passwords.verify(p.getOrDefault("password", ""), state.passwordHashes.get(user))) {
+            if (silent) state.observedLoginFailures.incrementAndGet();
+            json(x, 401, Map.of("error", "Credenciales inválidas"));
+            return;
+        }
+        session = UUID.randomUUID().toString();
+        state.sessionExpires.put(session, System.currentTimeMillis() + 30 * 60_000L);
+        state.sessions.put(session, user);
+    }
+    x.getResponseHeaders().add("Set-Cookie",
+            "LABSESSION=" + session + "; Path=/; HttpOnly; SameSite=Lax");
+    json(x, 200, Map.of("user", user, "token", session));
+}
+```
+
+**Paso 3 — `LabServer.java`:** reemplaza `currentUser` por los dos métodos siguientes. Las sesiones caducan después de 30 minutos.
+
+<!-- snippet:A07-current -->
+
+```java
+private String currentUser(HttpExchange x) {
+    String auth = x.getRequestHeaders().getFirst("Authorization");
+    if (auth != null && auth.startsWith("Bearer ")) return sessionUser(auth.substring(7));
+    String cookies = x.getRequestHeaders().getFirst("Cookie");
+    if (cookies != null) for (String cookie : cookies.split(";")) {
+        String[] pair = cookie.trim().split("=", 2);
+        if (pair.length == 2 && pair[0].equals("LABSESSION")) return sessionUser(pair[1]);
+    }
+    return null;
+}
+
+private String sessionUser(String token) {
+    synchronized (state) {
+        Long expiresAt = state.sessionExpires.get(token);
+        if (expiresAt == null || expiresAt <= System.currentTimeMillis()) {
+            state.sessions.remove(token);
+            state.sessionExpires.remove(token);
+            return null;
+        }
+        return state.sessions.get(token);
+    }
+}
+```
+
+**Paso 4 — `LabServer.route`:** agrega este caso junto al caso existente de `POST /api/a07/reset`. Conserva ese caso existente.
+
+<!-- snippet:A07-route -->
+
+```java
+case "POST /api/a07/reset-token" -> issueResetToken(x, p);
+```
+
+**Paso 5 — `LabServer.java`:** agrega los métodos `tokenHash` y `issueResetToken` y reemplaza `resetPassword`. Los nombres de clases nuevos están cualificados para no necesitar imports.
+
+<!-- snippet:A07-reset -->
+
+```java
+private static String tokenHash(String token) throws java.security.GeneralSecurityException {
+    return HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
+            .digest(token.getBytes(StandardCharsets.UTF_8)));
+}
+
+private void issueResetToken(HttpExchange x, Map<String, String> p) throws Exception {
+    synchronized (state) {
+        String user = currentUser(x);
+        if (user == null) {
+            json(x, 401, Map.of("error", "Inicia sesión"));
+            return;
+        }
+        if (!Passwords.verify(p.getOrDefault("currentPassword", ""), state.passwordHashes.get(user))) {
+            json(x, 403, Map.of("error", "Credenciales inválidas"));
+            return;
+        }
+        byte[] random = new byte[32];
+        new java.security.SecureRandom().nextBytes(random);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(random);
+        long expiresAt = System.currentTimeMillis() + 5 * 60_000L;
+        // Un token nuevo reemplaza al anterior de la misma cuenta.
+        state.resetGrants.put(user, new LabState.ResetGrant(tokenHash(token), expiresAt));
+        // Solo se entrega al usuario que acaba de demostrar sesión y contraseña.
+        json(x, 200, Map.of("user", user, "token", token, "expiresInSeconds", 300));
+    }
+}
+
+private void resetPassword(HttpExchange x, Map<String, String> p) throws Exception {
+    String user = p.getOrDefault("user", "");
+    String token = p.getOrDefault("token", "");
+    synchronized (state) {
+        LabState.ResetGrant grant = state.resetGrants.get(user);
+        if (!state.passwordHashes.containsKey(user) || grant == null
+                || grant.expiresAt() <= System.currentTimeMillis()
+                || token.length() != 43
+                || !java.security.MessageDigest.isEqual(
+                        grant.digest().getBytes(StandardCharsets.US_ASCII),
+                        tokenHash(token).getBytes(StandardCharsets.US_ASCII))) {
+            json(x, 403, Map.of("error", "Token inválido o vencido"));
+            return;
+        }
+        String password = p.getOrDefault("password", "");
+        if (password.length() < 15 || password.length() > 128) {
+            json(x, 400, Map.of("error", "Usa entre 15 y 128 caracteres"));
+            return;
+        }
+        String hash = Passwords.hash(password);
+        state.passwordHashes.put(user, hash);
+        state.resetGrants.remove(user);
+        state.sessions.entrySet().removeIf(entry -> {
+            if (!entry.getValue().equals(user)) return false;
+            state.sessionExpires.remove(entry.getKey());
+            return true;
+        });
+    }
+    json(x, 200, Map.of("reset", true, "user", user));
+}
+```
+
+**Demostración legítima en PowerShell:** ejecuta después de reconstruir, con el estado recién iniciado. La variable de token solo vive en la sesión del presentador.
+
+<!-- snippet:A07-demo -->
+
+```powershell
+$base = 'http://localhost:18080'
+$loginBob = Invoke-RestMethod "$base/api/login" -Method Post -Body @{
+    user = 'bob'; password = 'demo123'
+}
+$headersBob = @{ Authorization = "Bearer $($loginBob.token)" }
+$grant = Invoke-RestMethod "$base/api/a07/reset-token" -Method Post -Headers $headersBob -Body @{
+    currentPassword = 'demo123'
+}
+Invoke-RestMethod "$base/api/a07/reset" -Method Post -Body @{
+    user = 'bob'; token = $grant.token; password = 'NuevaClaveDemo2026!'
+}
+Invoke-RestMethod "$base/api/login" -Method Post -Body @{
+    user = 'bob'; password = 'NuevaClaveDemo2026!'
+}
+```
+
+**Comprobación adicional:** `reset-bob` devuelve 403; el token válido solo funciona para Bob y una vez. Al repetirlo, usarlo para Alice o esperar más de cinco minutos, devuelve 403. El bearer anterior ya no sirve en `/api/me`, `demo123` deja de autenticar a Bob y la contraseña nueva sí funciona. Pedir un token sin sesión devuelve 401.
+
+**Para ampliar:** entrega tokens mediante un canal previamente verificado para recuperación sin sesión, limita solicitudes e intentos, añade MFA donde corresponda y usa almacenamiento persistente con transacciones. El token aleatorio, su hash, la caducidad, el consumo y la revocación aquí sí están implementados. La serialización del login bajo un bloqueo global simplifica la demo; una aplicación real necesita control de concurrencia por cuenta y protección frente a saturación.
+
+<a id="a08"></a>
+
+## A08 — Fallas en integridad de software o datos
+
+**Archivo:** `LabServer.java`. Reemplaza `checkout` completo. Conserva el formato Base64 para que los botones actuales sigan funcionando, pero ignora `unitPrice` y calcula el precio desde el catálogo del servidor.
+
+<!-- snippet:A08-checkout -->
+
+```java
+private void checkout(HttpExchange x, Map<String, String> p) throws IOException {
+    com.fasterxml.jackson.databind.JsonNode cart;
+    try {
+        byte[] decoded = Base64.getDecoder().decode(p.getOrDefault("cart", ""));
+        if (decoded.length > 4096) throw new IllegalArgumentException();
+        cart = JSON.readTree(decoded);
+    } catch (IllegalArgumentException | com.fasterxml.jackson.core.JsonProcessingException exception) {
+        json(x, 400, Map.of("error", "Carrito inválido"));
+        return;
+    }
+    if (cart == null || !cart.isObject() || !cart.path("sku").isTextual()
+            || !cart.path("quantity").isIntegralNumber()
+            || !cart.path("quantity").canConvertToInt()) {
+        json(x, 400, Map.of("error", "Carrito inválido"));
+        return;
+    }
+    String sku = cart.path("sku").asText();
+    int quantity = cart.path("quantity").intValue();
+    Integer unitPrice = Map.of("LAPTOP-DEMO", 1000).get(sku);
+    if (unitPrice == null || quantity < 1 || quantity > 10) {
+        json(x, 400, Map.of("error", "SKU o cantidad inválidos"));
+        return;
+    }
+    int total = Math.multiplyExact(unitPrice, quantity);
+    json(x, 200, Map.of("sku", sku, "quantity", quantity,
+            "unitPrice", unitPrice, "charged", total, "priceSource", "server-catalog"));
+}
+```
+
+**Comprobación:** el carrito original y uno con `unitPrice=1` cobran 1000 para una unidad. SKU desconocido, cantidad fraccionaria, cero, negativa, mayor de diez, Base64 inválido o JSON inválido devuelven 400. No se afirma que Base64 tenga una firma: la autoridad del precio es el servidor.
+
+**Para ampliar:** resuelve también descuentos, impuestos y disponibilidad en el servidor. Si usas cotizaciones firmadas, valida propietario, audiencia, vencimiento y repetición antes de aceptar el pedido.
+
+<a id="a09"></a>
+
+## A09 — Fallas en registro y alertas de seguridad
+
+**Orden:** puedes aplicar A09 sobre el login original, sobre A04, o después de A07. Si aplicas A07 posteriormente, vuelve a insertar la llamada del paso 3 porque reemplaza `login`.
+
+**Paso 1 — `LabServer.java`:** agrega estos dos campos dentro de la clase, fuera de los métodos. No agregues imports: ya existe `java.util.*`.
+
+<!-- snippet:A09-fields -->
+
+```java
+private final Deque<Map<String, Object>> securityEvents = new ArrayDeque<>();
+private final Deque<Map<String, Object>> securityAlerts = new ArrayDeque<>();
+```
+
+**Paso 2 — `LabServer.java`:** agrega estos métodos. Cada fallo genera un evento JSON y el octavo para la misma cuenta en cinco minutos genera una alerta JSON. Ambos se imprimen en la salida del contenedor y se conservan en un búfer acotado para la presentación. Los valores del cliente se serializan y se limita su longitud.
+
+<!-- snippet:A09-methods -->
+
+```java
+private void recordLoginFailure(HttpExchange x, String user) throws IOException {
+    long now = System.currentTimeMillis();
+    String actor = user.length() <= 80 ? user : "[usuario demasiado largo]";
+    String correlationId = UUID.randomUUID().toString();
+    Map<String, Object> event = Map.of(
+            "type", "LOGIN_FAILED", "timestamp", java.time.Instant.ofEpochMilli(now).toString(),
+            "epochMillis", now, "actor", actor, "result", "DENIED",
+            "source", x.getRemoteAddress().getAddress().getHostAddress(),
+            "correlationId", correlationId);
+    synchronized (securityEvents) {
+        state.observedLoginFailures.incrementAndGet();
+        if (securityEvents.size() == 256) securityEvents.removeFirst();
+        securityEvents.addLast(event);
+        System.out.println(JSON.writeValueAsString(event));
+        long count = securityEvents.stream()
+                .filter(item -> actor.equals(item.get("actor")))
+                .filter(item -> (long) item.get("epochMillis") >= now - 5 * 60_000L)
+                .count();
+        if (count == 8) {
+            Map<String, Object> alert = Map.of(
+                    "type", "LOGIN_FAILURE_THRESHOLD",
+                    "timestamp", java.time.Instant.ofEpochMilli(now).toString(),
+                    "actor", actor, "failures", count, "windowSeconds", 300,
+                    "correlationId", correlationId);
+            if (securityAlerts.size() == 64) securityAlerts.removeFirst();
+            securityAlerts.addLast(alert);
+            System.out.println(JSON.writeValueAsString(alert));
+        }
+    }
+}
+
+private void telemetry(HttpExchange x) throws IOException {
+    if (!"alice".equals(currentUser(x))) {
+        json(x, 403, Map.of("error", "Acceso no autorizado"));
+        return;
+    }
+    Map<String, Object> snapshot;
+    synchronized (securityEvents) {
+        snapshot = Map.of("observedFailures", state.observedLoginFailures.get(),
+                "securityEvents", List.copyOf(securityEvents),
+                "alerts", List.copyOf(securityAlerts));
+    }
+    json(x, 200, snapshot);
+}
+```
+
+**Paso 3 — `LabServer.login`:** dentro del bloque de credenciales incorrectas, reemplaza la línea `if (silent) state.observedLoginFailures.incrementAndGet();` por esta llamada. Conserva el 401 y el `return`. La misma regla aplica a ambos endpoints de login, sin depender de `silent`.
+
+<!-- snippet:A09-hook -->
+
+```java
+recordLoginFailure(x, user);
+```
+
+**Paso 4 — `LabServer.route`:** reemplaza el caso completo de `GET /api/a09/telemetry` (incluida su continuación con listas vacías) por:
+
+<!-- snippet:A09-route -->
+
+```java
+case "GET /api/a09/telemetry" -> telemetry(x);
+```
+
+**Demostración en PowerShell:** funciona también con A02, que elimina la cuenta admin. Alice es la operadora autorizada de esta demostración; se registran igualmente intentos contra cuentas inexistentes.
+
+<!-- snippet:A09-demo -->
+
+```powershell
+$base = 'http://localhost:18080'
+$loginAlice = Invoke-RestMethod "$base/api/login" -Method Post -Body @{
+    user = 'alice'; password = 'demo123'
+}
+$headersAlice = @{ Authorization = "Bearer $($loginAlice.token)" }
+1..8 | ForEach-Object {
+    try {
+        Invoke-RestMethod "$base/api/a09/login" -Method Post -Body @{
+            user = 'admin'; password = 'wrong'
+        } | Out-Null
+        throw 'Se esperaba HTTP 401'
+    } catch {
+        if ($null -eq $_.Exception.Response -or
+            [int]$_.Exception.Response.StatusCode -ne 401) { throw }
+    }
+}
+Invoke-RestMethod "$base/api/a09/telemetry" -Headers $headersAlice |
+    ConvertTo-Json -Depth 6
+```
+
+**Comprobación:** desde un servidor recién iniciado, ocho fallos generan `observedFailures=8`, ocho eventos y una alerta `LOGIN_FAILURE_THRESHOLD`. Revisa también `docker compose logs lab`. Un visitante recibe 403 en telemetría. No se registran contraseñas, cookies ni tokens. La ventana se reinicia tras cinco minutos; la alerta aparece al pasar de siete a ocho fallos para una cuenta dentro de la ventana.
+
+**Límite explícito:** el búfer conserva 256 eventos y 64 alertas y se pierde al reiniciar; la ventana se calcula sobre esos 256 eventos. Es una implementación verificable del escenario, no un SIEM: con mucho tráfico puede perder cobertura. En operación, envía el JSON a un receptor central con retención y control de acceso, configura entrega a responsables y monitorea fallos del canal. Sustituye el permiso fijo de Alice por un rol gestionado por el servidor.
+
+<a id="a10"></a>
+
+## A10 — Manejo inadecuado de condiciones excepcionales
+
+**Archivo:** `LabServer.java`. Reemplaza `pay` completo. Usa la excepción que el simulador ya lanza (`IllegalStateException`), por lo que no necesitas inventar una clase de excepción. Se conserva el interruptor local `riskService=offline` para demostrar el fallo.
+
+<!-- snippet:A10-pay -->
+
+```java
+private void pay(HttpExchange x, Map<String, String> p) throws IOException {
+    int amount;
+    try {
+        amount = Integer.parseInt(p.getOrDefault("amount", "1000"));
+    } catch (NumberFormatException exception) {
+        json(x, 400, Map.of("error", "Importe inválido"));
+        return;
+    }
+    if (amount <= 0 || amount > 1_000_000) {
+        json(x, 400, Map.of("error", "Importe inválido"));
+        return;
+    }
+    String riskService = p.getOrDefault("riskService", "online");
+    if (!Set.of("online", "offline").contains(riskService)) {
+        json(x, 400, Map.of("error", "Estado del servicio inválido"));
+        return;
+    }
+    boolean approved;
+    try {
+        if ("offline".equals(riskService)) {
+            throw new IllegalStateException("Antifraude no disponible");
+        }
+        approved = amount <= 500;
+    } catch (IllegalStateException exception) {
+        String correlationId = UUID.randomUUID().toString();
+        System.err.println(JSON.writeValueAsString(Map.of(
+                "type", "RISK_SERVICE_UNAVAILABLE",
+                "timestamp", java.time.Instant.now().toString(),
+                "correlationId", correlationId)));
+        json(x, 503, Map.of("approved", false, "reason", "risk-unavailable",
+                "amount", amount, "completedOrders", state.orders.get(),
+                "correlationId", correlationId));
+        return;
+    }
+    int count = approved ? state.orders.incrementAndGet() : state.orders.get();
+    json(x, approved ? 200 : 403, Map.of("approved", approved,
+            "reason", approved ? "risk-accepted" : "risk-rejected",
+            "amount", amount, "completedOrders", count));
+}
+```
+
+**Comprobación:** importe 1000 con servicio online devuelve 403; offline devuelve 503 y `approved=false`. En ambos casos `completedOrders` no aumenta. Un importe 100 con servicio online devuelve 200 e incrementa el contador una vez por llamada. Importes inválidos devuelven 400.
+
+**Para ampliar:** este parche cierra el fallo ante indisponibilidad; no implementa deduplicación de solicitudes. Para pagos reales agrega claves de idempotencia persistentes, transacciones, timeouts y reintentos limitados; distingue rechazo de indisponibilidad y no produzcas efectos financieros antes de la aprobación. Retira el interruptor público de fallos.
+
+## Aceptación de la presentación
+
+Comprueba tanto el intento rechazado como el caso legítimo. A01 conserva la factura propia; A03 conserva el precio aprobado; A04 conserva el login; A05 conserva la búsqueda; A06 permite un primer canje; A07 permite el cambio autorizado; A08 conserva el checkout; A09 permite consultar auditoría a la operadora; A10 permite importes aprobados. A02 cierra deliberadamente el diagnóstico público.
+
+Para regresión automatizada, adapta `src/test/java/mx/demo/owasp/LabServerTest.java` a las respuestas indicadas y agrega concurrencia en A06, token vencido/reutilizado y revocación en A07, y ausencia de incremento de pedidos en A10. Mantén las pruebas de casos legítimos. Ningún éxito de compilación equivale por sí solo a validar estos comportamientos.
+
+Referencias: [OWASP Top 10:2025](https://top10.owasp.org/2025/es/), [almacenamiento de contraseñas](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) y [recuperación de contraseñas](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html). Los controles de tokens aleatorios, caducidad y consumo único de A07 siguen esta última guía; la entrega por correo verificado requiere un servicio adicional.

@@ -263,449 +263,871 @@
   @media (max-width: 600px) { body { padding: 16px 12px 32px; } main { padding: 20px 16px; } div.sourceCode { padding: 12px; } }
   @media print { html, body, main { background: #fff; color: #000; } body { max-width: none; padding: 0; font-size: 10pt; } main { border: 0; padding: 0; } .guide-nav, .guide-footer { display: none; } h2 { break-after: avoid; } div.sourceCode { break-inside: avoid; } pre, pre > code.sourceCode { white-space: pre-wrap; overflow-wrap: anywhere; } }
 </style>
+<style>
+  .copy-toolbar { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+  .copy-toolbar button { cursor: pointer; border: 1px solid #16748b; border-radius: 6px; padding: 7px 14px; background: #0b5266; color: white; font: inherit; }
+  .copy-toolbar button:focus-visible { outline: 3px solid #db8a00; outline-offset: 3px; }
+  .copy-status { font-size: .9rem; color: #334155; }
+  .copy-toolbar + div.sourceCode, .copy-toolbar + pre { margin-top: 6px; }
+  pre code { white-space: pre; }
+  div.sourceCode { overflow: auto; }
+  [id] { scroll-margin-top: 16px; }
+  @media print { .copy-toolbar { display: none; } pre code { white-space: pre-wrap; } }
+</style>
 </head>
 <body id="inicio">
 <nav class="guide-nav" aria-label="Guías del laboratorio"><strong>OWASP Top 10:2025</strong><a href="docs/DEMOSTRACIONES.html">Demostraciones</a><a href="MITIGACIONES.html" aria-current="page">Mitigaciones</a></nav>
 <main>
 <h1
-id="mitigaciones-específicas-del-laboratorio-owasp-top-102025">Mitigaciones
-específicas del laboratorio OWASP Top 10:2025</h1>
-<nav id="TOC" role="doc-toc">
-<h2 id="toc-title">Contenido</h2>
+id="mitigaciones-listas-para-copiar-y-pegar-owasp-top-102025">Mitigaciones
+listas para copiar y pegar — OWASP Top 10:2025</h1>
+<p>Esta guía contiene código completo para corregir <strong>los diez
+escenarios de este laboratorio</strong> durante una presentación. Los
+cambios se aplican manualmente; los archivos de la aplicación no se
+modifican al abrir la guía. Cada bloque indica el archivo y si debes
+reemplazar un método, agregar campos o cambiar un caso del
+enrutador.</p>
+<h2 id="preparación-y-orden-de-aplicación">Preparación y orden de
+aplicación</h2>
 <ul>
-<li><a href="#mitigaciones-específicas-del-laboratorio-owasp-top-102025"
-id="toc-mitigaciones-específicas-del-laboratorio-owasp-top-102025">Mitigaciones
-específicas del laboratorio OWASP Top 10:2025</a>
-<ul>
-<li><a href="#a01--pérdida-de-control-de-acceso"
-id="toc-a01--pérdida-de-control-de-acceso">A01 — Pérdida de control de
-acceso</a></li>
-<li><a href="#a02--configuración-de-seguridad-incorrecta"
-id="toc-a02--configuración-de-seguridad-incorrecta">A02 — Configuración
-de seguridad incorrecta</a></li>
-<li><a href="#a03--fallas-en-la-cadena-de-suministro-de-software"
-id="toc-a03--fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
-en la cadena de suministro de software</a></li>
-<li><a href="#a04--fallas-criptográficas"
-id="toc-a04--fallas-criptográficas">A04 — Fallas criptográficas</a></li>
-<li><a href="#a05--inyección" id="toc-a05--inyección">A05 —
-Inyección</a></li>
-<li><a href="#a06--diseño-inseguro" id="toc-a06--diseño-inseguro">A06 —
-Diseño inseguro</a></li>
-<li><a href="#a07--fallas-de-autenticación"
-id="toc-a07--fallas-de-autenticación">A07 — Fallas de
-autenticación</a></li>
-<li><a href="#a08--fallas-en-integridad-de-software-o-datos"
-id="toc-a08--fallas-en-integridad-de-software-o-datos">A08 — Fallas en
-integridad de software o datos</a></li>
-<li><a href="#a09--fallas-en-registro-y-alertas-de-seguridad"
-id="toc-a09--fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
-registro y alertas de seguridad</a></li>
-<li><a href="#a10--manejo-inadecuado-de-condiciones-excepcionales"
-id="toc-a10--manejo-inadecuado-de-condiciones-excepcionales">A10 —
-Manejo inadecuado de condiciones excepcionales</a></li>
-<li><a href="#orden-de-trabajo-y-aceptación"
-id="toc-orden-de-trabajo-y-aceptación">Orden de trabajo y
-aceptación</a></li>
-</ul></li>
+<li>Copia el contenido de cada bloque, sin las marcas de Markdown. En
+HTML usa <strong>Copiar</strong>; si el navegador bloquea el
+portapapeles, el bloque quedará seleccionado para copiar con
+Ctrl+C.</li>
+<li>Un método se reemplaza <strong>completo</strong>, incluida su firma
+y sus llaves. Los campos y métodos nuevos van dentro de la clase, fuera
+de otros métodos. Los <code>case</code> van dentro del
+<code>switch</code> de <code>LabServer.route</code>.</li>
+<li>Los bloques usan los imports actuales o nombres de clase completos.
+Solo A04 crea un archivo Java nuevo, con sus imports incluidos. No hay
+que modificar <code>pom.xml</code>.</li>
+<li>Puedes presentar cada escenario por separado, excepto <strong>A07,
+que requiere A04</strong>. Para aplicar todos: <strong>A01 → A02 → A03 →
+A04 → A05 → A06 → A07 → A08 → A09 → A10</strong>.</li>
+<li>A01 puede estar ya corregido en tu copia: el método de esta guía
+conserva esa protección. A02 deshabilita admin; usa Alice como operadora
+al mostrar A09.</li>
+<li>El código sigue siendo un laboratorio con datos en memoria. A03
+retira la actualización dinámica; A06 conserva una única billetera; A07
+ofrece cambio de contraseña con identidad verificada; A09 ofrece
+auditoría local. Cada sección distingue su alcance de las ampliaciones
+necesarias.</li>
 </ul>
-</nav>
-
-<p>Este archivo describe <strong>cómo corregir cada vulnerabilidad de
-este proyecto</strong>. Las correcciones son propuestas: no están
-aplicadas en la versión didáctica. Los fragmentos ilustran el cambio
-central y pueden requerir nuevos repositorios, tablas o servicios; no
-son parches completos para copiar sin adaptación.</p>
-<p>Para practicar, crea una rama de correcciones, implementa los cambios
-y transforma las pruebas de
-<code>src/test/java/mx/demo/owasp/LabServerTest.java</code> en pruebas
-que esperen el rechazo del abuso. Mantén también casos legítimos para
-evitar que una corrección consista simplemente en inutilizar la
-función.</p>
-<p>La clasificación sigue <a
-href="https://top10.owasp.org/2025/es/">OWASP Top 10:2025</a>. Cada
-categoría puede abarcar muchas debilidades y algunos controles se
-complementan entre sí.</p>
-<h2 id="a01--pérdida-de-control-de-acceso">A01 — Pérdida de control de
-acceso</h2>
-<p><strong>Ubicación:</strong>
-<code>src/main/java/mx/demo/owasp/LabServer.java</code>, métodos
-<code>invoice</code> y <code>currentUser</code>; ruta
-<code>GET /api/a01/invoice</code>.</p>
-<p><strong>Problema:</strong> se exige sesión, pero cualquier usuario
-autenticado obtiene una factura de cualquier propietario al cambiar
-<code>id</code>. Autenticar no equivale a autorizar.</p>
-<p><strong>Cambios necesarios:</strong></p>
-<ol type="1">
-<li>Obtén el propietario desde el almacenamiento del servidor y
-compáralo con el principal de la sesión antes de devolver datos.</li>
-<li>Implementa denegación por defecto y una política central para
-operaciones y objetos; un rol administrativo debe proceder del servidor,
-nunca de un campo enviado por el cliente.</li>
-<li>En una versión con base de datos, filtra por objeto <strong>y
-propietario</strong> en la misma consulta. No consideres los UUID una
-sustitución de la autorización.</li>
-<li>Protege igualmente lectura, modificación, listados y exportación.
-Evita confirmar la existencia de objetos ajenos cuando no sea
-necesario.</li>
-</ol>
+<h2 id="compilar-y-presentar">Compilar y presentar</h2>
+<p>Los cambios Java requieren reconstruir y reiniciar; recargar la
+página no los aplica. Reiniciar borra contraseñas cambiadas, sesiones,
+canjes, saldo y registros.</p>
+<p>Las pruebas originales y <code>SmokeCheck</code> esperan
+vulnerabilidades: sus expectativas deben cambiar al aplicar
+mitigaciones. <strong>No desactives las pruebas comentando todo el
+archivo.</strong> Para una presentación puedes omitir temporalmente su
+ejecución mientras usas las comprobaciones de esta guía.</p>
+<p><strong>Con Java 21+ y Maven instalados</strong>, desde la raíz del
+proyecto:</p>
 <div class="sourceCode" id="cb1"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// En invoice, después de obtener owner y antes de construir la respuesta:</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span>owner<span class="op">.</span><span class="fu">equals</span><span class="op">(</span>viewer<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">404</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Factura no disponible&quot;</span><span class="op">));</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p><strong>Verificación:</strong> Alice obtiene 1001; Alice no obtiene
-1002 ni su domicilio; Bob obtiene 1002; un usuario sin sesión recibe
-401. Cambia la expectativa de la prueba
-<code>a01AliceCanReadBobsInvoiceButAnonymousCannot</code> a 403/404 para
-la factura ajena.</p>
-<h2 id="a02--configuración-de-seguridad-incorrecta">A02 — Configuración
-de seguridad incorrecta</h2>
-<p><strong>Ubicación:</strong> <code>LabServer.debug</code>, ruta
-<code>GET /api/a02/debug</code>, credenciales iniciales en
-<code>LabState</code>.</p>
-<p><strong>Problema:</strong> diagnóstico público con credenciales
-funcionales, secreto ficticio y CORS permisivo. No basta con ocultar el
-enlace en la página.</p>
-<p><strong>Cambios necesarios:</strong></p>
-<ol type="1">
-<li>Elimina la ruta de diagnóstico de la distribución de producción o
-regístrala solo en un perfil local explícito. Si se conserva para
-operación, exige una autorización administrativa independiente y
-devuelve campos permitidos de forma expresa.</li>
-<li>No serialices variables de entorno, credenciales ni configuración
-completa. Sustituye secretos incrustados por un gestor de secretos y
-rota las credenciales expuestas; eliminarlas del HTML no revoca su
-uso.</li>
-<li>Quita <code>Access-Control-Allow-Origin: *</code>; la aplicación usa
-el mismo origen y no lo necesita. Cuando haya otro cliente web,
-configura una lista exacta de orígenes y revisa métodos/cabeceras.</li>
-<li>Añade cabeceras apropiadas, como
-<code>X-Content-Type-Options: nosniff</code> y una CSP. Mueve el
-JavaScript inline de <code>index.html</code> a un recurso propio para
-usar una política <code>script-src 'self'</code> sin habilitar ejecución
-inline indiscriminada.</li>
-<li>Deshabilita cuentas de demostración, depuración y respuestas
-detalladas de excepciones en una aplicación real. Conserva diagnósticos
-internos sin secretos.</li>
-</ol>
-<p><strong>Verificación:</strong> un visitante recibe 404/403 en
-<code>/api/a02/debug</code>; ninguna respuesta contiene
-<code>admin123</code> o la clave ficticia; <code>admin/admin123</code>
-deja de autenticar. Una petición de origen no autorizado no obtiene
-permiso CORS. CORS es un control del navegador, no reemplaza
-autorización.</p>
-<h2 id="a03--fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
-en la cadena de suministro de software</h2>
-<p><strong>Ubicación:</strong>
-<code>src/main/java/mx/demo/owasp/SupplyChain.java</code>, método
-<code>quote</code>; <code>fixtures/</code>; plugins/dependencias de
-<code>pom.xml</code>; imágenes base de <code>Dockerfile</code>.</p>
-<p><strong>Problema:</strong> el proceso de actualización carga y
-ejecuta la clase de un proveedor sin acreditar procedencia ni
-aprobación. Los dos JAR locales permiten observar el mismo riesgo sin
-descargar software malicioso.</p>
-<p><strong>Cambios necesarios:</strong></p>
-<ol type="1">
-<li>Retira del cliente web la posibilidad de seleccionar una
-actualización. Instala componentes mediante un flujo administrativo con
-revisión y aprobación.</li>
-<li>Usa un registro de artefactos de confianza, versiones inmutables,
-firma y procedencia verificables. Mantén claves de confianza fuera del
-control del artefacto descargado.</li>
-<li>Verifica el contenido <strong>antes</strong> de crear
-<code>URLClassLoader</code>. Un digest esperado debe provenir de una
-referencia previamente aprobada, no del mismo repositorio potencialmente
-comprometido.</li>
-<li>Mantén SBOM de dependencias directas, transitivas, plugins, JDK e
-imagen del sistema operativo. Integra análisis de composición de
-software, revisión de avisos y actualizaciones con responsables y
-plazos.</li>
-<li>Protege CI/CD, ramas y registros con mínimo privilegio, revisión,
-MFA y credenciales de alcance limitado. Promueve el mismo artefacto
-validado entre entornos y usa despliegues graduales.</li>
-<li>Fija imágenes por digest si necesitas builds reproducibles y
-actualiza esos digests de manera controlada. No confundas fijar
-versiones con mantenerlas actualizadas.</li>
-</ol>
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>mvn <span class="op">-</span>DskipTests clean package</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>java <span class="op">-</span>jar target<span class="op">/</span>owasp-lab<span class="op">.</span><span class="fu">jar</span></span></code></pre></div>
+<p>En este caso el puerto es <strong>8080</strong>; cambia
+<code>$base</code> en los ejemplos PowerShell a
+<code>http://localhost:8080</code>.</p>
+<p><strong>Con Docker</strong>, para esta modalidad de presentación,
+reemplaza exclusivamente la línea
+<code>RUN mvn -B -ntp clean verify</code> del <code>Dockerfile</code>
+por:</p>
 <div class="sourceCode" id="cb2"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Ejemplo conceptual antes de cargar el JAR; expectedDigest viene de una</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// configuración aprobada y protegida, nunca del parámetro channel.</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">byte</span><span class="op">[]</span> actual <span class="op">=</span> <span class="bu">MessageDigest</span><span class="op">.</span><span class="fu">getInstance</span><span class="op">(</span><span class="st">&quot;SHA-256&quot;</span><span class="op">).</span><span class="fu">digest</span><span class="op">(</span>Files<span class="op">.</span><span class="fu">readAllBytes</span><span class="op">(</span>jar<span class="op">));</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span><span class="bu">MessageDigest</span><span class="op">.</span><span class="fu">isEqual</span><span class="op">(</span>expectedDigest<span class="op">,</span> actual<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">SecurityException</span><span class="op">(</span><span class="st">&quot;Artefacto no aprobado&quot;</span><span class="op">);</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Además: validar firma/procedencia con una raíz de confianza independiente.</span></span></code></pre></div>
-<p>Un checksum coincidente no acredita por sí solo quién produjo el
-software. La firma tampoco garantiza que un proveedor confiable no haya
-introducido código defectuoso: se necesitan revisión, pruebas y
-respuesta a compromisos.</p>
-<p><strong>Verificación:</strong> el artefacto aprobado mantiene el
-precio 1000; el fixture comprometido se rechaza <strong>antes de
-invocar</strong> <code>PriceRule.apply</code>. Un archivo alterado,
-firma desconocida, versión no aprobada o ausencia del servicio de
-verificación no deben habilitar su carga. Sustituye las expectativas de
-<code>a03CompromisedSupplierJarActuallyChangesExecutedCode</code>.</p>
-<h2 id="a04--fallas-criptográficas">A04 — Fallas criptográficas</h2>
-<p><strong>Ubicación:</strong> <code>LabState.md5</code>,
-<code>passwordHashes</code>, <code>LabServer.login</code>,
-<code>resetPassword</code> y <code>/api/a04/hashes</code>.</p>
-<p><strong>Problema:</strong> MD5 sin salt permite identificar
-contraseñas iguales y probar diccionarios rápidamente. El volcado del
-ejercicio representa acceso a hashes robados.</p>
-<p><strong>Cambios necesarios:</strong></p>
-<ol type="1">
-<li>Sustituye MD5 por una implementación mantenida de Argon2id con salt
-único por contraseña y coste ajustado al servicio. No sustituyas MD5 por
-SHA-256 simple: sigue siendo rápido para ataques de diccionario.</li>
-<li>Encapsula almacenamiento y verificación en un servicio de
-contraseñas, para que <code>login</code> y <code>resetPassword</code>
-usen la misma política. Guarda algoritmo, parámetros y salt junto al
-hash.</li>
-<li>Migra gradualmente: verifica un hash legado solo durante el acceso
-válido, recalcula inmediatamente el hash moderno y elimina el anterior.
-Fuerza restablecimiento para cuentas que no se migren o que se
-consideren comprometidas.</li>
-<li>Elimina <code>/api/a04/hashes</code> de una distribución real.
-Limita acceso al almacenamiento y a sus respaldos.</li>
-<li>Para datos reversibles sensibles, usa cifrado autenticado y gestión
-de claves con rotación; no uses el algoritmo de hashing de contraseñas
-como cifrado. Usa TLS y cookies <code>Secure</code> cuando la aplicación
-se sirva por HTTPS.</li>
-</ol>
-<p><strong>Verificación:</strong> Alice y Bob tienen hashes almacenados
-distintos aun con la misma contraseña; ambas verifican correctamente;
-una contraseña incorrecta no verifica; el diccionario MD5 deja de
-reproducir el hash. Revisa parámetros y coste en el entorno de ejecución
-real, sin escribir criptografía propia.</p>
-<p>Referencia: <a
-href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">OWASP
-Password Storage Cheat Sheet</a>.</p>
-<h2 id="a05--inyección">A05 — Inyección</h2>
-<p><strong>Ubicación:</strong> <code>LabServer.customers</code>,
-<code>GET /api/a05/customers</code>.</p>
-<p><strong>Problema:</strong> <code>name</code> pasa a formar parte de
-la sintaxis SQL. El valor <code>' OR '1'='1</code> cambia el significado
-de la consulta.</p>
-<p><strong>Cambio principal:</strong> reemplaza la concatenación y
-<code>Statement</code> por SQL fijo con <code>PreparedStatement</code> y
-parámetros enlazados.</p>
+class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">mvn</span> <span class="at">-B</span> <span class="at">-ntp</span> <span class="at">-DskipTests</span> clean package</span></code></pre></div>
+<p>Luego reconstruye y abre <strong>http://localhost:18080</strong>:</p>
 <div class="sourceCode" id="cb3"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">String</span> query <span class="op">=</span> <span class="st">&quot;SELECT id, name, private_note FROM customers WHERE name = ?&quot;</span><span class="op">;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> <span class="op">(</span><span class="dt">var</span> connection <span class="op">=</span> <span class="bu">DriverManager</span><span class="op">.</span><span class="fu">getConnection</span><span class="op">(</span>state<span class="op">.</span><span class="fu">databaseUrl</span><span class="op">);</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>     <span class="dt">var</span> statement <span class="op">=</span> connection<span class="op">.</span><span class="fu">prepareStatement</span><span class="op">(</span>query<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    statement<span class="op">.</span><span class="fu">setString</span><span class="op">(</span><span class="dv">1</span><span class="op">,</span> p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;name&quot;</span><span class="op">,</span> <span class="st">&quot;Alice&quot;</span><span class="op">));</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">(</span><span class="dt">var</span> results <span class="op">=</span> statement<span class="op">.</span><span class="fu">executeQuery</span><span class="op">())</span> <span class="op">{</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Construir una respuesta que contenga solo los campos autorizados.</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>Valida además longitud y formato de entrada por reglas de negocio. No
-uses listas de palabras prohibidas ni escapes manuales como sustituto de
-parámetros. Para identificadores SQL dinámicos que no admitan
-parámetros, usa una selección de valores permitidos controlada por el
-servidor. Reduce privilegios de la cuenta de base de datos y no
-devuelvas SQL ni notas privadas a usuarios no autorizados.</p>
-<p><strong>Verificación:</strong> <code>Alice</code> devuelve el
-registro permitido; el payload se trata como un nombre literal y
-devuelve cero filas, sin error SQL ni notas ajenas. Prueba también
-nombres legítimos con apóstrofos. La parametrización no reemplaza los
-controles de acceso de A01.</p>
-<h2 id="a06--diseño-inseguro">A06 — Diseño inseguro</h2>
-<p><strong>Ubicación:</strong> <code>LabServer.redeem</code>,
-<code>LabState.wallet</code>.</p>
-<p><strong>Problema:</strong> el requisito de un canje por billetera no
-está representado en el modelo. La operación suma saldo en cada llamada
-aunque el cupón ya se haya consumido.</p>
-<p><strong>Cambios necesarios:</strong></p>
-<ol type="1">
-<li>Define el invariante: un usuario autenticado puede canjear cada
-campaña como máximo una vez; la billetera de destino procede del
-servidor.</li>
-<li>Introduce una tabla de canjes con restricción única
-<code>(user_id, campaign_id)</code>. El registro del canje y el crédito
-deben ocurrir en una única transacción.</li>
-<li>Si la inserción encuentra un canje existente, devuelve 409 o la
-respuesta idempotente original sin volver a acreditar saldo.</li>
-<li>Protege también llamadas concurrentes. La secuencia «consultar si
-existe, luego insertar» sin restricción/transacción permite
-carreras.</li>
-<li>Define caducidad, presupuesto de campaña, elegibilidad y
-recuperación ante fallos antes de implementar promociones.</li>
-</ol>
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>docker compose up <span class="op">--</span>build <span class="op">-</span>d <span class="op">--</span>wait</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>docker compose logs lab</span></code></pre></div>
+<p><code>-DskipTests</code> compila las pruebas pero omite ejecutarlas;
+<strong>no certifica la mitigación</strong>. Tras actualizar las pruebas
+a los resultados esperados, restaura
+<code>RUN mvn -B -ntp clean verify</code> y ejecuta
+<code>mvn clean verify</code> o reconstruye con Docker. Si las pruebas
+están comentadas, restáuralas y adapta las expectativas para recuperar
+esa validación.</p>
+<p>Los botones de la página muestran las respuestas HTTP. Después de
+mitigar es normal ver 403, 404 o 409 en los intentos de abuso. A04 deja
+de exponer hashes, por lo que su botón antiguo ya no podrá ejecutar el
+diccionario; verifica hashes en el depurador. A09 requiere ahora una
+sesión autorizada para consultar telemetría: usa su bloque
+PowerShell.</p>
+<h2 id="índice-de-escenarios">Índice de escenarios</h2>
+<ul>
+<li><a href="#a01">A01 — Pérdida de control de acceso</a></li>
+<li><a href="#a02">A02 — Configuración de seguridad incorrecta</a></li>
+<li><a href="#a03">A03 — Fallas en la cadena de suministro de
+software</a></li>
+<li><a href="#a04">A04 — Fallas criptográficas</a></li>
+<li><a href="#a05">A05 — Inyección</a></li>
+<li><a href="#a06">A06 — Diseño inseguro</a></li>
+<li><a href="#a07">A07 — Fallas de autenticación</a></li>
+<li><a href="#a08">A08 — Fallas en integridad de software o
+datos</a></li>
+<li><a href="#a09">A09 — Fallas en registro y alertas de
+seguridad</a></li>
+<li><a href="#a10">A10 — Manejo inadecuado de condiciones
+excepcionales</a></li>
+</ul>
+<p><a id="a01"></a></p>
+<h2 id="a01-pérdida-de-control-de-acceso">A01 — Pérdida de control de
+acceso</h2>
+<p><strong>Archivo:</strong>
+<code>src/main/java/mx/demo/owasp/LabServer.java</code>. Reemplaza el
+método <code>invoice</code> completo. No requiere imports nuevos. Si ya
+agregaste la comparación de propietario, este método la incluye.</p>
+<!-- snippet:A01-invoice -->
 <div class="sourceCode" id="cb4"><pre
-class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> coupon_redemptions (</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    user_id <span class="dt">VARCHAR</span>(<span class="dv">80</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    campaign_id <span class="dt">VARCHAR</span>(<span class="dv">80</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    redeemed_at <span class="dt">TIMESTAMP</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (user_id, campaign_id)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>);</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">-- En la misma transacción: INSERT del canje + UPDATE de la billetera.</span></span></code></pre></div>
-<p><strong>Verificación:</strong> primer canje 100 → 110; segundo canje
-mantiene 110. Varias peticiones simultáneas solo generan un crédito. Si
-se inyecta un fallo después de registrar el canje pero antes de
-acreditar el saldo, se revierte toda la transacción.</p>
-<h2 id="a07--fallas-de-autenticación">A07 — Fallas de autenticación</h2>
-<p><strong>Ubicación:</strong> <code>LabServer.resetPassword</code>,
-<code>login</code>, <code>currentUser</code>; mapas de contraseñas y
-sesiones en <code>LabState</code>.</p>
-<p><strong>Problema:</strong> <code>reset-&lt;usuario&gt;</code> puede
-calcularse sin probar identidad, no caduca y se reutiliza. El cambio de
-contraseña tampoco revoca sesiones existentes.</p>
-<p><strong>Cambios necesarios:</strong></p>
-<ol type="1">
-<li>Genera tokens opacos con <code>SecureRandom</code> y entropía
-suficiente, por ejemplo 32 bytes aleatorios codificados en
-Base64url.</li>
-<li>Envía el token por un canal previamente verificado. No lo devuelvas
-a quien solicita un restablecimiento en una API pública.</li>
-<li>Almacena un hash del token ligado al usuario, propósito, caducidad y
-estado de consumo. Consúmelo y cambia la contraseña de forma atómica.
-Aquí un hash criptográfico rápido de un token de alta entropía tiene un
-propósito distinto del hashing de contraseñas.</li>
-<li>Devuelve respuestas uniformes al solicitar recuperación para no
-enumerar cuentas. Limita intentos y solicitudes por cuenta y origen con
-una política que contemple abuso y usuarios legítimos.</li>
-<li>Revoca sesiones después del restablecimiento, rota identificadores
-al autenticar y establece expiración de sesiones. Agrega MFA a
-operaciones y cuentas de riesgo.</li>
-</ol>
+class="sourceCode java"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">invoice</span><span class="op">(</span>HttpExchange x<span class="op">,</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> p<span class="op">)</span> <span class="kw">throws</span> <span class="bu">IOException</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> viewer <span class="op">=</span> <span class="fu">currentUser</span><span class="op">(</span>x<span class="op">);</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>viewer <span class="op">==</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">401</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Inicia sesión&quot;</span><span class="op">));</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> id <span class="op">=</span> p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;id&quot;</span><span class="op">,</span> <span class="st">&quot;1001&quot;</span><span class="op">);</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> owner <span class="op">=</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;1001&quot;</span><span class="op">,</span> <span class="st">&quot;alice&quot;</span><span class="op">,</span> <span class="st">&quot;1002&quot;</span><span class="op">,</span> <span class="st">&quot;bob&quot;</span><span class="op">).</span><span class="fu">get</span><span class="op">(</span>id<span class="op">);</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>owner <span class="op">==</span> <span class="kw">null</span> <span class="op">||</span> <span class="op">!</span>owner<span class="op">.</span><span class="fu">equals</span><span class="op">(</span>viewer<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">404</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Factura no disponible&quot;</span><span class="op">));</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">200</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;id&quot;</span><span class="op">,</span> id<span class="op">,</span> <span class="st">&quot;owner&quot;</span><span class="op">,</span> owner<span class="op">,</span> <span class="st">&quot;viewer&quot;</span><span class="op">,</span> viewer<span class="op">,</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;total&quot;</span><span class="op">,</span> <span class="dv">1500</span><span class="op">,</span> <span class="st">&quot;address&quot;</span><span class="op">,</span> <span class="st">&quot;Domicilio ficticio de &quot;</span> <span class="op">+</span> owner<span class="op">));</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Comprobación:</strong> inicia sesión como Alice: 1001
+devuelve 200; 1002 y un ID inexistente devuelven el mismo 404. Sin
+sesión devuelve 401. Bob conserva acceso a 1002.</p>
+<p><strong>Para ampliar:</strong> aplica esta autorización también a
+modificación, listados y exportación; en una base de datos filtra por ID
+y propietario en la misma consulta.</p>
+<p><a id="a02"></a></p>
+<h2 id="a02-configuración-de-seguridad-incorrecta">A02 — Configuración
+de seguridad incorrecta</h2>
+<p><strong>Paso 1 — <code>LabServer.java</code>:</strong> reemplaza el
+método <code>debug</code>. Al eliminar su cuerpo anterior también
+desaparece el CORS permisivo.</p>
+<!-- snippet:A02-debug -->
 <div class="sourceCode" id="cb5"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">byte</span><span class="op">[]</span> random <span class="op">=</span> <span class="kw">new</span> <span class="dt">byte</span><span class="op">[</span><span class="dv">32</span><span class="op">];</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">new</span> java<span class="op">.</span><span class="fu">security</span><span class="op">.</span><span class="fu">SecureRandom</span><span class="op">().</span><span class="fu">nextBytes</span><span class="op">(</span>random<span class="op">);</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">String</span> token <span class="op">=</span> Base64<span class="op">.</span><span class="fu">getUrlEncoder</span><span class="op">().</span><span class="fu">withoutPadding</span><span class="op">().</span><span class="fu">encodeToString</span><span class="op">(</span>random<span class="op">);</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Persistir solo su hash + usuario + expiresAt + consumedAt; entregar por canal verificado.</span></span></code></pre></div>
-<p><strong>Verificación:</strong> <code>reset-bob</code> se rechaza; un
-token válido funciona una sola vez y solo para Bob; tokens caducados,
-reutilizados o de otro usuario no cambian contraseñas. La contraseña
-anterior y las sesiones anteriores dejan de funcionar tras un cambio
-válido.</p>
-<h2 id="a08--fallas-en-integridad-de-software-o-datos">A08 — Fallas en
-integridad de software o datos</h2>
-<p><strong>Ubicación:</strong> <code>LabServer.checkout</code>,
-<code>/api/a08/cart</code>.</p>
-<p><strong>Problema:</strong> <code>unitPrice</code> recibido en un
-carrito Base64 decide cuánto cobrar. No se acredita integridad ni
-autoridad del dato.</p>
-<p><strong>Cambios necesarios:</strong></p>
-<ol type="1">
-<li>Acepta del cliente SKU y cantidad. Resuelve precio, descuentos,
-impuestos y disponibilidad a partir de información confiable del
-servidor.</li>
-<li>Valida SKU existente, cantidad positiva y límites. Calcula importes
-con unidades monetarias enteras y comprobación de overflow, o
-<code>BigDecimal</code> con reglas explícitas de redondeo.</li>
-<li>Si necesitas cotizaciones transportadas por el cliente, emite un
-identificador opaco almacenado en el servidor o firma los datos con una
-librería apropiada, incorporando usuario, audiencia, expiración y nonce.
-Verifica antes de usar y aplica controles de repetición.</li>
-<li>Revalida condiciones relevantes al confirmar el pedido. Una firma
-sobre datos elegidos por el atacante no hace confiable el precio.</li>
-</ol>
+class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">debug</span><span class="op">(</span>HttpExchange x<span class="op">)</span> <span class="kw">throws</span> <span class="bu">IOException</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">404</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Ruta o método no disponible&quot;</span><span class="op">));</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Paso 2 — <code>LabState.java</code>:</strong> agrega esta
+línea al final del constructor <code>LabState()</code>, después de crear
+los usuarios y las tablas. La cuenta expuesta deja de existir en cada
+arranque. Si A04 se aplica después, conserva esta línea.</p>
+<!-- snippet:A02-admin -->
 <div class="sourceCode" id="cb6"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Ejemplo de catálogo bajo control del servidor:</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> unitPrice <span class="op">=</span> catalog<span class="op">.</span><span class="fu">priceOf</span><span class="op">(</span>sku<span class="op">);</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>quantity <span class="op">&lt;</span> <span class="dv">1</span> <span class="op">||</span> quantity <span class="op">&gt;</span> <span class="dv">10</span><span class="op">)</span> <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span><span class="op">();</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> total <span class="op">=</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">multiplyExact</span><span class="op">(</span>unitPrice<span class="op">,</span> quantity<span class="op">);</span></span></code></pre></div>
-<p><strong>Verificación:</strong> cambiar <code>unitPrice</code> a 1 se
-rechaza o se ignora y el total sigue siendo 1000. SKU desconocido,
-cantidades negativas/excesivas y una cotización vencida se rechazan. Si
-implementas firma, modificar un byte o reutilizar una cotización
-consumida no debe generar un pedido.</p>
-<h2 id="a09--fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
-registro y alertas de seguridad</h2>
-<p><strong>Ubicación:</strong> <code>LabServer.login</code> con
-<code>silent=true</code>, <code>observedLoginFailures</code> y
-<code>/api/a09/telemetry</code>.</p>
-<p><strong>Problema:</strong> se omite emitir evidencia útil sobre
-fallos de acceso. El contador global didáctico no permite reconstruir
-quién intentó acceder, cuándo, desde dónde ni qué regla se activó. Las
-listas vacías representan un sistema de auditoría y alertas ausente.</p>
-<p><strong>Cambios necesarios:</strong></p>
-<ol type="1">
-<li>Crea un servicio de auditoría que emita eventos estructurados para
-login, recuperación, denegaciones de autorización, actualizaciones de
-componentes y operaciones privilegiadas.</li>
-<li>Incluye hora UTC, tipo, identificador de correlación, actor o cuenta
-objetivo, resultado y origen confiable. No confíes directamente en
-<code>X-Forwarded-For</code> si no procede de un proxy controlado.</li>
-<li>No registres contraseñas, cookies, tokens ni datos personales
-innecesarios. Usa serialización estructurada para que caracteres de
-control no creen eventos falsos.</li>
-<li>Envía eventos a almacenamiento central con control de acceso,
-retención y protección contra modificación. Monitorea también pérdida de
-eventos y fallos del canal de auditoría.</li>
-<li>Conecta reglas de detección con un canal real de atención. Como
-criterio didáctico, ocho fallos para una cuenta en cinco minutos deben
-crear una alerta verificable. Ajusta umbrales reales con métricas y
-análisis del servicio.</li>
-<li>En las pruebas usa un emisor en memoria con reloj controlable; en
-operación verifica la entrega al sistema de monitoreo y el procedimiento
-de respuesta.</li>
-</ol>
+class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>passwordHashes<span class="op">.</span><span class="fu">remove</span><span class="op">(</span><span class="st">&quot;admin&quot;</span><span class="op">);</span></span></code></pre></div>
+<p><strong>Paso 3 — <code>LabServer.java</code>:</strong> agrega estas
+cabeceras al principio del método <code>send</code>, antes de
+<code>sendResponseHeaders</code>.</p>
+<!-- snippet:A02-headers -->
 <div class="sourceCode" id="cb7"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Punto de integración conceptual antes de responder 401:</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>audit<span class="op">.</span><span class="fu">emit</span><span class="op">(</span><span class="kw">new</span> <span class="fu">SecurityEvent</span><span class="op">(</span><span class="st">&quot;LOGIN_FAILED&quot;</span><span class="op">,</span> clock<span class="op">.</span><span class="fu">instant</span><span class="op">(),</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        correlationId<span class="op">,</span> user<span class="op">,</span> trustedSource<span class="op">,</span> <span class="st">&quot;DENIED&quot;</span><span class="op">));</span></span></code></pre></div>
-<p><strong>Verificación:</strong> ocho intentos fallidos producen ocho
-eventos sin secretos y al menos una alerta según la regla; el evento
-permite correlacionar la secuencia. Una contraseña con saltos de línea
-no genera entradas adicionales. Simula indisponibilidad del receptor y
-comprueba la política de búfer/aviso; no basta con que
-<code>docker compose logs</code> muestre cualquier texto.</p>
-<h2 id="a10--manejo-inadecuado-de-condiciones-excepcionales">A10 —
-Manejo inadecuado de condiciones excepcionales</h2>
-<p><strong>Ubicación:</strong> <code>LabServer.pay</code>, bloque
-<code>catch (IllegalStateException)</code>.</p>
-<p><strong>Problema:</strong> una excepción de una dependencia de
-seguridad se interpreta como aprobación. El pago de 1000, rechazado
-normalmente, se completa cuando el antifraude falla.</p>
-<p><strong>Cambios necesarios:</strong></p>
-<ol type="1">
-<li>Sustituye <code>approved = true</code> en el <code>catch</code> por
-rechazo seguro o estado pendiente sin efectos financieros. No confundas
-fallo de evaluación con resultado aprobado.</li>
-<li>Define un contrato explícito para <code>APPROVED</code>,
-<code>REJECTED</code> y <code>UNAVAILABLE</code>. Captura excepciones
-esperadas concretas y evita capturas amplias que oculten fallos de
-programación.</li>
-<li>Aplica timeouts, reintentos limitados solo cuando sean seguros,
-circuit breaker e idempotencia. No generes duplicados al reintentar
-pagos.</li>
-<li>Mantén consistencia transaccional: no incrementes pedidos ni alteres
-saldos antes de la aprobación válida; revierte cambios parciales.</li>
-<li>Registra el fallo con correlación sin filtrar trazas internas al
-cliente. Devuelve un error temporal uniforme, por ejemplo 503, o un
-estado pendiente explícito según el contrato.</li>
-<li>Retira <code>riskService=offline</code> de la API de producción;
-conserva la inyección de fallos en dobles de prueba o herramientas
-internas controladas.</li>
-</ol>
+class="sourceCode java"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span><span class="fu">getResponseHeaders</span><span class="op">().</span><span class="fu">set</span><span class="op">(</span><span class="st">&quot;X-Content-Type-Options&quot;</span><span class="op">,</span> <span class="st">&quot;nosniff&quot;</span><span class="op">);</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span><span class="fu">getResponseHeaders</span><span class="op">().</span><span class="fu">set</span><span class="op">(</span><span class="st">&quot;X-Frame-Options&quot;</span><span class="op">,</span> <span class="st">&quot;DENY&quot;</span><span class="op">);</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>x<span class="op">.</span><span class="fu">getResponseHeaders</span><span class="op">().</span><span class="fu">set</span><span class="op">(</span><span class="st">&quot;Referrer-Policy&quot;</span><span class="op">,</span> <span class="st">&quot;no-referrer&quot;</span><span class="op">);</span></span></code></pre></div>
+<p><strong>Comprobación:</strong> <code>GET /api/a02/debug</code>
+devuelve 404 sin credenciales ni permiso CORS;
+<code>admin/admin123</code> devuelve 401. Alice y Bob siguen disponibles
+para los demás ejercicios. Reconstruye y reinicia para que la
+eliminación del usuario surta efecto.</p>
+<p><strong>Para ampliar:</strong> las cuentas de Alice y Bob siguen
+siendo datos de demostración. En una aplicación real elimina cuentas de
+ejemplo, rota secretos expuestos y configura un gestor de secretos. Para
+una CSP estricta, extrae primero el JavaScript inline de la página a un
+recurso servido por el backend; estas cabeceras no sustituyen ese
+trabajo.</p>
+<p><a id="a03"></a></p>
+<h2 id="a03-fallas-en-la-cadena-de-suministro-de-software">A03 — Fallas
+en la cadena de suministro de software</h2>
+<p><strong>Opción de presentación:</strong> retirar la carga dinámica y
+compilar la regla aprobada con la aplicación. El cliente ya no puede
+instalar ni ejecutar un JAR. Se conserva el precio legítimo de 1000.
+Esta opción reduce la funcionalidad de actualización; no pretende
+implementar firmas de artefactos.</p>
+<p><strong>Paso 1:</strong> reemplaza <strong>todo</strong>
+<code>src/main/java/mx/demo/owasp/SupplyChain.java</code> por:</p>
+<!-- snippet:A03-supply -->
 <div class="sourceCode" id="cb8"><pre
-class="sourceCode java"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">catch</span> <span class="op">(</span>RiskServiceUnavailableException exception<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    audit<span class="op">.</span><span class="fu">recordDependencyFailure</span><span class="op">(</span><span class="st">&quot;risk&quot;</span><span class="op">,</span> correlationId<span class="op">);</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">503</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;approved&quot;</span><span class="op">,</span> <span class="kw">false</span><span class="op">,</span> <span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;No fue posible evaluar el pago&quot;</span><span class="op">));</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span> <span class="co">// No modificar completedOrders ni efectuar cargos.</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p><strong>Verificación:</strong> la misma operación de 1000 nunca se
-aprueba durante caída, timeout o respuesta inválida del antifraude.
-<code>completedOrders</code> permanece igual. Un importe legítimo
-aprobado se completa una sola vez y un reintento con la misma clave de
-idempotencia no duplica la operación.</p>
-<h2 id="orden-de-trabajo-y-aceptación">Orden de trabajo y
-aceptación</h2>
-<p>Para una rama de correcciones de este laboratorio, aborda primero
-autorización, autenticación, SQL y decisiones ante fallos
-(A01/A07/A05/A10); después protege diagnóstico y almacenamiento de
-contraseñas (A02/A04), las reglas comerciales y los datos (A06/A08), y
-el proceso de actualización y la observabilidad (A03/A09). Esto es una
-secuencia pedagógica, no una priorización universal por riesgo.</p>
-<p>Una corrección termina cuando funciona el caso legítimo, se rechaza
-el abuso documentado y existen pruebas de regresión del comportamiento
-esperado. Las medidas Docker actuales reducen exposición, pero no
-sustituyen ninguno de estos cambios. No publiques este proyecto como
-producto real sin completar una revisión de seguridad más amplia.</p>
-</main>
-<footer class="guide-footer"><a href="#inicio">Volver al inicio</a></footer>
-</body>
-</html>
+class="sourceCode java"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> mx</span><span class="op">.</span><span class="im">demo</span><span class="op">.</span><span class="im">owasp</span><span class="op">;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="dt">final</span> <span class="kw">class</span> SupplyChain <span class="op">{</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="fu">SupplyChain</span><span class="op">()</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">static</span> <span class="dt">int</span> <span class="fu">quote</span><span class="op">(</span><span class="bu">String</span> channel<span class="op">,</span> <span class="dt">int</span> price<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(!</span><span class="st">&quot;trusted&quot;</span><span class="op">.</span><span class="fu">equals</span><span class="op">(</span>channel<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">SecurityException</span><span class="op">(</span><span class="st">&quot;Actualización no aprobada&quot;</span><span class="op">);</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>price <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span><span class="op">(</span><span class="st">&quot;Precio inválido&quot;</span><span class="op">);</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Regla revisada y compilada con la aplicación; no carga código externo.</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> price<span class="op">;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Paso 2 — <code>LabServer.route</code>:</strong> reemplaza el
+bloque completo <code>case "POST /api/a03/update"</code> por:</p>
+<!-- snippet:A03-route -->
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="cf">case</span> <span class="st">&quot;POST /api/a03/update&quot;</span> <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">int</span> price <span class="op">=</span> SupplyChain<span class="op">.</span><span class="fu">quote</span><span class="op">(</span>p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;channel&quot;</span><span class="op">,</span> <span class="st">&quot;trusted&quot;</span><span class="op">),</span> <span class="dv">1000</span><span class="op">);</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">200</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;component&quot;</span><span class="op">,</span> <span class="st">&quot;built-in.PriceRule&quot;</span><span class="op">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;channel&quot;</span><span class="op">,</span> <span class="st">&quot;trusted&quot;</span><span class="op">,</span> <span class="st">&quot;catalogPrice&quot;</span><span class="op">,</span> <span class="dv">1000</span><span class="op">,</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;chargedPrice&quot;</span><span class="op">,</span> price<span class="op">,</span> <span class="st">&quot;dynamicLoading&quot;</span><span class="op">,</span> <span class="kw">false</span><span class="op">));</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span><span class="bu">SecurityException</span> exception<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">403</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Actualización no aprobada&quot;</span><span class="op">));</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Comprobación:</strong> <code>channel=trusted</code> devuelve
+200 y <code>chargedPrice=1000</code>; <code>channel=compromised</code> y
+rutas arbitrarias devuelven 403. Ningún JAR de <code>fixtures</code> se
+carga ni se ejecuta, aunque Maven aún los genere. No se declara una
+firma verificada que no existe.</p>
+<p><strong>Si necesitas conservar actualizaciones dinámicas:</strong>
+requieren un flujo administrativo y validar digest aprobado, firma y
+procedencia antes de crear un cargador de clases. La referencia de
+confianza debe ser independiente de la descarga. Revisa dependencias,
+plugins, imágenes, SBOM y permisos de CI/CD; este parche resuelve el
+escenario de carga dinámica del laboratorio.</p>
+<p><a id="a04"></a></p>
+<h2 id="a04-fallas-criptográficas">A04 — Fallas criptográficas</h2>
+<p><strong>Paso 1:</strong> crea
+<code>src/main/java/mx/demo/owasp/Passwords.java</code> con el contenido
+completo siguiente. Usa PBKDF2-HMAC-SHA256 del JDK, salt aleatorio de 16
+bytes, 600 000 iteraciones y una clave de 256 bits; no agrega
+dependencias Maven. Argon2id es la primera opción general de OWASP; aquí
+se elige PBKDF2 para facilitar una demostración con el JDK existente. El
+coste indicado coincide con la <a
+href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">guía
+de almacenamiento de contraseñas de OWASP</a>.</p>
+<!-- snippet:A04-passwords -->
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> mx</span><span class="op">.</span><span class="im">demo</span><span class="op">.</span><span class="im">owasp</span><span class="op">;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">security</span><span class="op">.</span><span class="im">GeneralSecurityException</span><span class="op">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">security</span><span class="op">.</span><span class="im">MessageDigest</span><span class="op">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">security</span><span class="op">.</span><span class="im">SecureRandom</span><span class="op">;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">Arrays</span><span class="op">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">Base64</span><span class="op">;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">crypto</span><span class="op">.</span><span class="im">SecretKeyFactory</span><span class="op">;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">crypto</span><span class="op">.</span><span class="im">spec</span><span class="op">.</span><span class="im">PBEKeySpec</span><span class="op">;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="dt">final</span> <span class="kw">class</span> Passwords <span class="op">{</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">static</span> <span class="dt">final</span> <span class="dt">int</span> ITERATIONS <span class="op">=</span> <span class="dv">600_000</span><span class="op">;</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">static</span> <span class="dt">final</span> <span class="bu">SecureRandom</span> RANDOM <span class="op">=</span> <span class="kw">new</span> <span class="bu">SecureRandom</span><span class="op">();</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="fu">Passwords</span><span class="op">()</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">static</span> <span class="bu">String</span> <span class="fu">hash</span><span class="op">(</span><span class="bu">String</span> password<span class="op">)</span> <span class="kw">throws</span> <span class="bu">GeneralSecurityException</span> <span class="op">{</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>password <span class="op">==</span> <span class="kw">null</span> <span class="op">||</span> password<span class="op">.</span><span class="fu">length</span><span class="op">()</span> <span class="op">&gt;</span> <span class="dv">1024</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span><span class="op">(</span><span class="st">&quot;Contraseña inválida&quot;</span><span class="op">);</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">byte</span><span class="op">[]</span> salt <span class="op">=</span> <span class="kw">new</span> <span class="dt">byte</span><span class="op">[</span><span class="dv">16</span><span class="op">];</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>        RANDOM<span class="op">.</span><span class="fu">nextBytes</span><span class="op">(</span>salt<span class="op">);</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>        <span class="dt">byte</span><span class="op">[]</span> derived <span class="op">=</span> <span class="fu">derive</span><span class="op">(</span>password<span class="op">,</span> salt<span class="op">);</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">&quot;pbkdf2-sha256$&quot;</span> <span class="op">+</span> ITERATIONS <span class="op">+</span> <span class="st">&quot;$&quot;</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>                <span class="op">+</span> Base64<span class="op">.</span><span class="fu">getEncoder</span><span class="op">().</span><span class="fu">encodeToString</span><span class="op">(</span>salt<span class="op">)</span> <span class="op">+</span> <span class="st">&quot;$&quot;</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>                <span class="op">+</span> Base64<span class="op">.</span><span class="fu">getEncoder</span><span class="op">().</span><span class="fu">encodeToString</span><span class="op">(</span>derived<span class="op">);</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    <span class="dt">static</span> <span class="dt">boolean</span> <span class="fu">verify</span><span class="op">(</span><span class="bu">String</span> password<span class="op">,</span> <span class="bu">String</span> stored<span class="op">)</span> <span class="kw">throws</span> <span class="bu">GeneralSecurityException</span> <span class="op">{</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>password <span class="op">==</span> <span class="kw">null</span> <span class="op">||</span> password<span class="op">.</span><span class="fu">length</span><span class="op">()</span> <span class="op">&gt;</span> <span class="dv">1024</span> <span class="op">||</span> stored <span class="op">==</span> <span class="kw">null</span><span class="op">)</span> <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>        <span class="bu">String</span><span class="op">[]</span> parts <span class="op">=</span> stored<span class="op">.</span><span class="fu">split</span><span class="op">(</span><span class="st">&quot;</span><span class="sc">\\</span><span class="st">$&quot;</span><span class="op">,</span> <span class="op">-</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>parts<span class="op">.</span><span class="fu">length</span> <span class="op">!=</span> <span class="dv">4</span> <span class="op">||</span> <span class="op">!</span>parts<span class="op">[</span><span class="dv">0</span><span class="op">].</span><span class="fu">equals</span><span class="op">(</span><span class="st">&quot;pbkdf2-sha256&quot;</span><span class="op">)</span></span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>                <span class="op">||</span> <span class="op">!</span>parts<span class="op">[</span><span class="dv">1</span><span class="op">].</span><span class="fu">equals</span><span class="op">(</span><span class="bu">Integer</span><span class="op">.</span><span class="fu">toString</span><span class="op">(</span>ITERATIONS<span class="op">)))</span> <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>            <span class="dt">byte</span><span class="op">[]</span> salt <span class="op">=</span> Base64<span class="op">.</span><span class="fu">getDecoder</span><span class="op">().</span><span class="fu">decode</span><span class="op">(</span>parts<span class="op">[</span><span class="dv">2</span><span class="op">]);</span></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>            <span class="dt">byte</span><span class="op">[]</span> expected <span class="op">=</span> Base64<span class="op">.</span><span class="fu">getDecoder</span><span class="op">().</span><span class="fu">decode</span><span class="op">(</span>parts<span class="op">[</span><span class="dv">3</span><span class="op">]);</span></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> salt<span class="op">.</span><span class="fu">length</span> <span class="op">==</span> <span class="dv">16</span> <span class="op">&amp;&amp;</span> expected<span class="op">.</span><span class="fu">length</span> <span class="op">==</span> <span class="dv">32</span></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>                    <span class="op">&amp;&amp;</span> <span class="bu">MessageDigest</span><span class="op">.</span><span class="fu">isEqual</span><span class="op">(</span>expected<span class="op">,</span> <span class="fu">derive</span><span class="op">(</span>password<span class="op">,</span> salt<span class="op">));</span></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span><span class="bu">IllegalArgumentException</span> exception<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">static</span> <span class="dt">byte</span><span class="op">[]</span> <span class="fu">derive</span><span class="op">(</span><span class="bu">String</span> password<span class="op">,</span> <span class="dt">byte</span><span class="op">[]</span> salt<span class="op">)</span> <span class="kw">throws</span> <span class="bu">GeneralSecurityException</span> <span class="op">{</span></span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>        <span class="dt">char</span><span class="op">[]</span> characters <span class="op">=</span> password<span class="op">.</span><span class="fu">toCharArray</span><span class="op">();</span></span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>        <span class="bu">PBEKeySpec</span> spec <span class="op">=</span> <span class="kw">new</span> <span class="bu">PBEKeySpec</span><span class="op">(</span>characters<span class="op">,</span> salt<span class="op">,</span> ITERATIONS<span class="op">,</span> <span class="dv">256</span><span class="op">);</span></span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="bu">SecretKeyFactory</span><span class="op">.</span><span class="fu">getInstance</span><span class="op">(</span><span class="st">&quot;PBKDF2WithHmacSHA256&quot;</span><span class="op">)</span></span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>                    <span class="op">.</span><span class="fu">generateSecret</span><span class="op">(</span>spec<span class="op">).</span><span class="fu">getEncoded</span><span class="op">();</span></span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">finally</span> <span class="op">{</span></span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>            spec<span class="op">.</span><span class="fu">clearPassword</span><span class="op">();</span></span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>            <span class="bu">Arrays</span><span class="op">.</span><span class="fu">fill</span><span class="op">(</span>characters<span class="op">,</span> <span class="ch">&#39;\0&#39;</span><span class="op">);</span></span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Paso 2 — <code>LabState()</code>:</strong> reemplaza las tres
+líneas que inicializan hashes con <code>md5</code> por:</p>
+<!-- snippet:A04-seed -->
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>passwordHashes<span class="op">.</span><span class="fu">put</span><span class="op">(</span><span class="st">&quot;alice&quot;</span><span class="op">,</span> Passwords<span class="op">.</span><span class="fu">hash</span><span class="op">(</span><span class="st">&quot;demo123&quot;</span><span class="op">));</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>passwordHashes<span class="op">.</span><span class="fu">put</span><span class="op">(</span><span class="st">&quot;bob&quot;</span><span class="op">,</span> Passwords<span class="op">.</span><span class="fu">hash</span><span class="op">(</span><span class="st">&quot;demo123&quot;</span><span class="op">));</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>passwordHashes<span class="op">.</span><span class="fu">put</span><span class="op">(</span><span class="st">&quot;admin&quot;</span><span class="op">,</span> Passwords<span class="op">.</span><span class="fu">hash</span><span class="op">(</span><span class="st">&quot;admin123&quot;</span><span class="op">));</span></span></code></pre></div>
+<p>Si aplicaste A02, conserva
+<code>passwordHashes.remove("admin");</code> al final del
+constructor.</p>
+<p><strong>Paso 3 — <code>LabServer.login</code>:</strong> reemplaza
+exclusivamente estas dos líneas:</p>
+<p><code>String hash = LabState.md5(p.getOrDefault("password", ""));</code><br />
+<code>if (!hash.equals(state.passwordHashes.get(user))) {</code></p>
+<p>por el siguiente bloque. El resto del método se conserva, incluido su
+cierre de llave.</p>
+<!-- snippet:A04-login -->
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span>Passwords<span class="op">.</span><span class="fu">verify</span><span class="op">(</span>p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;password&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">),</span> state<span class="op">.</span><span class="fu">passwordHashes</span><span class="op">.</span><span class="fu">get</span><span class="op">(</span>user<span class="op">)))</span> <span class="op">{</span></span></code></pre></div>
+<p><strong>Paso 4 — <code>LabServer.resetPassword</code>:</strong>
+sustituye la línea que guarda <code>LabState.md5(...)</code> por:</p>
+<!-- snippet:A04-reset -->
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>state<span class="op">.</span><span class="fu">passwordHashes</span><span class="op">.</span><span class="fu">put</span><span class="op">(</span>user<span class="op">,</span> Passwords<span class="op">.</span><span class="fu">hash</span><span class="op">(</span>p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;password&quot;</span><span class="op">,</span> <span class="st">&quot;changed123&quot;</span><span class="op">)));</span></span></code></pre></div>
+<p>A07 reemplazará después el método completo para corregir la identidad
+y el token. Este paso solo evita volver a guardar MD5 mientras presentas
+A04.</p>
+<p><strong>Paso 5 — <code>LabServer.route</code>:</strong> reemplaza el
+caso completo de <code>GET /api/a04/hashes</code> por:</p>
+<!-- snippet:A04-route -->
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">case</span> <span class="st">&quot;GET /api/a04/hashes&quot;</span> <span class="op">-&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">404</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Ruta o método no disponible&quot;</span><span class="op">));</span></span></code></pre></div>
+<p><strong>Comprobación:</strong> Alice y Bob siguen entrando con
+<code>demo123</code>; una contraseña incorrecta falla y el endpoint de
+hashes devuelve 404. En el depurador, sus hashes empiezan con
+<code>pbkdf2-sha256$600000$</code> y son distintos pese a compartir
+contraseña. La comprobación usa <code>Passwords.verify</code>, nunca
+compara dos resultados de <code>Passwords.hash</code>.</p>
+<p><strong>Alcance:</strong> reiniciar recrea las cuentas del
+laboratorio; no hay hashes persistentes que migrar. El método
+<code>LabState.md5</code> puede quedarse sin llamadas para que las
+pruebas didácticas antiguas sigan compilando. En un sistema persistente
+implementa migración durante un login válido o restablecimiento forzado;
+no habilites MD5 como alternativa indefinida.</p>
+<p><a id="a05"></a></p>
+<h2 id="a05-inyección">A05 — Inyección</h2>
+<p><strong>Archivo:</strong> <code>LabServer.java</code>. Reemplaza
+<code>customers</code> completo. Utiliza los imports JDBC y de
+colecciones que ya existen. La respuesta deja de incluir SQL y notas
+privadas; el catálogo de nombres del ejercicio sigue siendo público.</p>
+<!-- snippet:A05-customers -->
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">customers</span><span class="op">(</span>HttpExchange x<span class="op">,</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> p<span class="op">)</span> <span class="kw">throws</span> <span class="bu">Exception</span> <span class="op">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> name <span class="op">=</span> p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;name&quot;</span><span class="op">,</span> <span class="st">&quot;Alice&quot;</span><span class="op">);</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>name<span class="op">.</span><span class="fu">length</span><span class="op">()</span> <span class="op">&gt;</span> <span class="dv">80</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">400</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Nombre demasiado largo&quot;</span><span class="op">));</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> query <span class="op">=</span> <span class="st">&quot;SELECT id, name FROM customers WHERE name = ?&quot;</span><span class="op">;</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">var</span> rows <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;</span><span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Object</span><span class="op">&gt;&gt;();</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">(</span><span class="dt">var</span> connection <span class="op">=</span> <span class="bu">DriverManager</span><span class="op">.</span><span class="fu">getConnection</span><span class="op">(</span>state<span class="op">.</span><span class="fu">databaseUrl</span><span class="op">);</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>         <span class="dt">var</span> statement <span class="op">=</span> connection<span class="op">.</span><span class="fu">prepareStatement</span><span class="op">(</span>query<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>        statement<span class="op">.</span><span class="fu">setString</span><span class="op">(</span><span class="dv">1</span><span class="op">,</span> name<span class="op">);</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span> <span class="op">(</span><span class="dt">var</span> results <span class="op">=</span> statement<span class="op">.</span><span class="fu">executeQuery</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>            <span class="cf">while</span> <span class="op">(</span>results<span class="op">.</span><span class="fu">next</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>                rows<span class="op">.</span><span class="fu">add</span><span class="op">(</span><span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;id&quot;</span><span class="op">,</span> results<span class="op">.</span><span class="fu">getInt</span><span class="op">(</span><span class="st">&quot;id&quot;</span><span class="op">),</span> <span class="st">&quot;name&quot;</span><span class="op">,</span> results<span class="op">.</span><span class="fu">getString</span><span class="op">(</span><span class="st">&quot;name&quot;</span><span class="op">)));</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">200</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;count&quot;</span><span class="op">,</span> rows<span class="op">.</span><span class="fu">size</span><span class="op">(),</span> <span class="st">&quot;customers&quot;</span><span class="op">,</span> rows<span class="op">));</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Comprobación:</strong> <code>name=Alice</code> devuelve una
+fila; <code>name=' OR '1'='1</code> devuelve cero. Un nombre con
+apóstrofo se trata como dato sin provocar un error SQL.</p>
+<p><strong>Para ampliar:</strong> si estos datos requieren privacidad,
+agrega autenticación y filtrado por propietario. Los parámetros SQL
+evitan inyección, pero no implementan autorización. Usa una cuenta SQL
+con privilegios mínimos.</p>
+<p><a id="a06"></a></p>
+<h2 id="a06-diseño-inseguro">A06 — Diseño inseguro</h2>
+<p><strong>Regla del laboratorio:</strong> existe una sola billetera
+compartida de 100 pesos; WELCOME10 se canjea una vez por esa billetera
+durante la vida del servidor. El parche conserva ese modelo y los
+botones actuales. Reiniciar crea una billetera nueva.</p>
+<p><strong>Paso 1 — <code>LabState.java</code>:</strong> agrega este
+campo dentro de la clase, fuera del constructor y de cualquier
+método:</p>
+<!-- snippet:A06-field -->
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="dt">boolean</span> welcomeRedeemed <span class="op">=</span> <span class="kw">false</span><span class="op">;</span> <span class="co">// Leer y escribir únicamente bajo synchronized (state).</span></span></code></pre></div>
+<p><strong>Paso 2 — <code>LabServer.java</code>:</strong> reemplaza
+<code>redeem</code> completo. El bloqueo protege tanto la comprobación
+como el crédito y el registro del canje; dos peticiones concurrentes no
+pueden acreditar dos veces.</p>
+<!-- snippet:A06-redeem -->
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">redeem</span><span class="op">(</span>HttpExchange x<span class="op">,</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> p<span class="op">)</span> <span class="kw">throws</span> <span class="bu">IOException</span> <span class="op">{</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span><span class="st">&quot;WELCOME10&quot;</span><span class="op">.</span><span class="fu">equals</span><span class="op">(</span>p<span class="op">.</span><span class="fu">get</span><span class="op">(</span><span class="st">&quot;coupon&quot;</span><span class="op">)))</span> <span class="op">{</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">400</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Cupón inválido&quot;</span><span class="op">));</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> status<span class="op">;</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Object</span><span class="op">&gt;</span> response<span class="op">;</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">synchronized</span> <span class="op">(</span>state<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>state<span class="op">.</span><span class="fu">welcomeRedeemed</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>            status <span class="op">=</span> <span class="dv">409</span><span class="op">;</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>            response <span class="op">=</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Cupón ya utilizado&quot;</span><span class="op">,</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;balance&quot;</span><span class="op">,</span> state<span class="op">.</span><span class="fu">wallet</span><span class="op">.</span><span class="fu">get</span><span class="op">(),</span> <span class="st">&quot;credit&quot;</span><span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">int</span> balance <span class="op">=</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">addExact</span><span class="op">(</span>state<span class="op">.</span><span class="fu">wallet</span><span class="op">.</span><span class="fu">get</span><span class="op">(),</span> <span class="dv">10</span><span class="op">);</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>            state<span class="op">.</span><span class="fu">wallet</span><span class="op">.</span><span class="fu">set</span><span class="op">(</span>balance<span class="op">);</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>            state<span class="op">.</span><span class="fu">welcomeRedeemed</span> <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>            status <span class="op">=</span> <span class="dv">200</span><span class="op">;</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>            response <span class="op">=</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;balance&quot;</span><span class="op">,</span> balance<span class="op">,</span> <span class="st">&quot;credit&quot;</span><span class="op">,</span> <span class="dv">10</span><span class="op">);</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> status<span class="op">,</span> response<span class="op">);</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Comprobación:</strong> primer canje devuelve 200 y saldo 110;
+el segundo devuelve 409 y saldo 110. Repite con llamadas concurrentes:
+exactamente una se acepta. Un cupón incorrecto devuelve 400 sin cambiar
+el saldo.</p>
+<p><strong>Para una billetera por usuario o varios procesos:</strong>
+identifica al propietario por sesión y persiste canjes con clave única
+<code>(user_id, campaign_id)</code>; inserción y crédito deben ocurrir
+en una transacción. El bloqueo en memoria de este ejemplo solo cubre la
+instancia única del laboratorio; no persiste ante reinicios ni coordina
+réplicas.</p>
+<p><a id="a07"></a></p>
+<h2 id="a07-fallas-de-autenticación">A07 — Fallas de autenticación</h2>
+<p><strong>Dependencia: aplica A04 primero.</strong> Los métodos
+siguientes usan <code>Passwords</code>. Aplica A09 después, porque
+modifica el bloque de fallo de este <code>login</code>.</p>
+<p>El laboratorio no tiene correo verificado. Para mostrar un flujo
+legítimo sin inventar un servicio de entrega, se agrega <strong>emisión
+de token solo con sesión válida y contraseña actual</strong>. La
+recuperación de una cuenta cuya contraseña se olvidó queda pendiente de
+un canal verificado. Ningún solicitante anónimo obtiene tokens.</p>
+<p><strong>Paso 1 — <code>LabState.java</code>:</strong> agrega estos
+campos y el record dentro de la clase, fuera de los métodos:</p>
+<!-- snippet:A07-state -->
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">record</span> <span class="fu">ResetGrant</span><span class="op">(</span><span class="bu">String</span> digest<span class="op">,</span> <span class="dt">long</span> expiresAt<span class="op">)</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="dt">final</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> ResetGrant<span class="op">&gt;</span> resetGrants <span class="op">=</span> <span class="kw">new</span> <span class="bu">ConcurrentHashMap</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="dt">final</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Long</span><span class="op">&gt;</span> sessionExpires <span class="op">=</span> <span class="kw">new</span> <span class="bu">ConcurrentHashMap</span><span class="op">&lt;&gt;();</span></span></code></pre></div>
+<p><strong>Paso 2 — <code>LabServer.java</code>:</strong> reemplaza
+<code>login</code> completo por este método. El bloqueo compartido con
+el restablecimiento impide crear una sesión con la contraseña anterior
+mientras se cambia. Mantiene las cookies locales HTTP del laboratorio;
+en HTTPS agrega <code>Secure</code>.</p>
+<!-- snippet:A07-login -->
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">login</span><span class="op">(</span>HttpExchange x<span class="op">,</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> p<span class="op">,</span> <span class="dt">boolean</span> silent<span class="op">)</span> <span class="kw">throws</span> <span class="bu">Exception</span> <span class="op">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> user <span class="op">=</span> p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;user&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">);</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> session<span class="op">;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">synchronized</span> <span class="op">(</span>state<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(!</span>Passwords<span class="op">.</span><span class="fu">verify</span><span class="op">(</span>p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;password&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">),</span> state<span class="op">.</span><span class="fu">passwordHashes</span><span class="op">.</span><span class="fu">get</span><span class="op">(</span>user<span class="op">)))</span> <span class="op">{</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(</span>silent<span class="op">)</span> state<span class="op">.</span><span class="fu">observedLoginFailures</span><span class="op">.</span><span class="fu">incrementAndGet</span><span class="op">();</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>            <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">401</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Credenciales inválidas&quot;</span><span class="op">));</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>        session <span class="op">=</span> <span class="bu">UUID</span><span class="op">.</span><span class="fu">randomUUID</span><span class="op">().</span><span class="fu">toString</span><span class="op">();</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>        state<span class="op">.</span><span class="fu">sessionExpires</span><span class="op">.</span><span class="fu">put</span><span class="op">(</span>session<span class="op">,</span> <span class="bu">System</span><span class="op">.</span><span class="fu">currentTimeMillis</span><span class="op">()</span> <span class="op">+</span> <span class="dv">30</span> <span class="op">*</span> <span class="dv">60_000L</span><span class="op">);</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>        state<span class="op">.</span><span class="fu">sessions</span><span class="op">.</span><span class="fu">put</span><span class="op">(</span>session<span class="op">,</span> user<span class="op">);</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>    x<span class="op">.</span><span class="fu">getResponseHeaders</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;Set-Cookie&quot;</span><span class="op">,</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;LABSESSION=&quot;</span> <span class="op">+</span> session <span class="op">+</span> <span class="st">&quot;; Path=/; HttpOnly; SameSite=Lax&quot;</span><span class="op">);</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">200</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;user&quot;</span><span class="op">,</span> user<span class="op">,</span> <span class="st">&quot;token&quot;</span><span class="op">,</span> session<span class="op">));</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Paso 3 — <code>LabServer.java</code>:</strong> reemplaza
+<code>currentUser</code> por los dos métodos siguientes. Las sesiones
+caducan después de 30 minutos.</p>
+<!-- snippet:A07-current -->
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="bu">String</span> <span class="fu">currentUser</span><span class="op">(</span>HttpExchange x<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> auth <span class="op">=</span> x<span class="op">.</span><span class="fu">getRequestHeaders</span><span class="op">().</span><span class="fu">getFirst</span><span class="op">(</span><span class="st">&quot;Authorization&quot;</span><span class="op">);</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>auth <span class="op">!=</span> <span class="kw">null</span> <span class="op">&amp;&amp;</span> auth<span class="op">.</span><span class="fu">startsWith</span><span class="op">(</span><span class="st">&quot;Bearer &quot;</span><span class="op">))</span> <span class="cf">return</span> <span class="fu">sessionUser</span><span class="op">(</span>auth<span class="op">.</span><span class="fu">substring</span><span class="op">(</span><span class="dv">7</span><span class="op">));</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> cookies <span class="op">=</span> x<span class="op">.</span><span class="fu">getRequestHeaders</span><span class="op">().</span><span class="fu">getFirst</span><span class="op">(</span><span class="st">&quot;Cookie&quot;</span><span class="op">);</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>cookies <span class="op">!=</span> <span class="kw">null</span><span class="op">)</span> <span class="cf">for</span> <span class="op">(</span><span class="bu">String</span> cookie <span class="op">:</span> cookies<span class="op">.</span><span class="fu">split</span><span class="op">(</span><span class="st">&quot;;&quot;</span><span class="op">))</span> <span class="op">{</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>        <span class="bu">String</span><span class="op">[]</span> pair <span class="op">=</span> cookie<span class="op">.</span><span class="fu">trim</span><span class="op">().</span><span class="fu">split</span><span class="op">(</span><span class="st">&quot;=&quot;</span><span class="op">,</span> <span class="dv">2</span><span class="op">);</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>pair<span class="op">.</span><span class="fu">length</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">&amp;&amp;</span> pair<span class="op">[</span><span class="dv">0</span><span class="op">].</span><span class="fu">equals</span><span class="op">(</span><span class="st">&quot;LABSESSION&quot;</span><span class="op">))</span> <span class="cf">return</span> <span class="fu">sessionUser</span><span class="op">(</span>pair<span class="op">[</span><span class="dv">1</span><span class="op">]);</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="bu">String</span> <span class="fu">sessionUser</span><span class="op">(</span><span class="bu">String</span> token<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">synchronized</span> <span class="op">(</span>state<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">Long</span> expiresAt <span class="op">=</span> state<span class="op">.</span><span class="fu">sessionExpires</span><span class="op">.</span><span class="fu">get</span><span class="op">(</span>token<span class="op">);</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>expiresAt <span class="op">==</span> <span class="kw">null</span> <span class="op">||</span> expiresAt <span class="op">&lt;=</span> <span class="bu">System</span><span class="op">.</span><span class="fu">currentTimeMillis</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>            state<span class="op">.</span><span class="fu">sessions</span><span class="op">.</span><span class="fu">remove</span><span class="op">(</span>token<span class="op">);</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>            state<span class="op">.</span><span class="fu">sessionExpires</span><span class="op">.</span><span class="fu">remove</span><span class="op">(</span>token<span class="op">);</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> state<span class="op">.</span><span class="fu">sessions</span><span class="op">.</span><span class="fu">get</span><span class="op">(</span>token<span class="op">);</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Paso 4 — <code>LabServer.route</code>:</strong> agrega este
+caso junto al caso existente de <code>POST /api/a07/reset</code>.
+Conserva ese caso existente.</p>
+<!-- snippet:A07-route -->
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="cf">case</span> <span class="st">&quot;POST /api/a07/reset-token&quot;</span> <span class="op">-&gt;</span> <span class="fu">issueResetToken</span><span class="op">(</span>x<span class="op">,</span> p<span class="op">);</span></span></code></pre></div>
+<p><strong>Paso 5 — <code>LabServer.java</code>:</strong> agrega los
+métodos <code>tokenHash</code> y <code>issueResetToken</code> y
+reemplaza <code>resetPassword</code>. Los nombres de clases nuevos están
+cualificados para no necesitar imports.</p>
+<!-- snippet:A07-reset -->
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">static</span> <span class="bu">String</span> <span class="fu">tokenHash</span><span class="op">(</span><span class="bu">String</span> token<span class="op">)</span> <span class="kw">throws</span> java<span class="op">.</span><span class="fu">security</span><span class="op">.</span><span class="fu">GeneralSecurityException</span> <span class="op">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> HexFormat<span class="op">.</span><span class="fu">of</span><span class="op">().</span><span class="fu">formatHex</span><span class="op">(</span>java<span class="op">.</span><span class="fu">security</span><span class="op">.</span><span class="fu">MessageDigest</span><span class="op">.</span><span class="fu">getInstance</span><span class="op">(</span><span class="st">&quot;SHA-256&quot;</span><span class="op">)</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span><span class="fu">digest</span><span class="op">(</span>token<span class="op">.</span><span class="fu">getBytes</span><span class="op">(</span>StandardCharsets<span class="op">.</span><span class="fu">UTF_8</span><span class="op">)));</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">issueResetToken</span><span class="op">(</span>HttpExchange x<span class="op">,</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> p<span class="op">)</span> <span class="kw">throws</span> <span class="bu">Exception</span> <span class="op">{</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">synchronized</span> <span class="op">(</span>state<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">String</span> user <span class="op">=</span> <span class="fu">currentUser</span><span class="op">(</span>x<span class="op">);</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>user <span class="op">==</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">401</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Inicia sesión&quot;</span><span class="op">));</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(!</span>Passwords<span class="op">.</span><span class="fu">verify</span><span class="op">(</span>p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;currentPassword&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">),</span> state<span class="op">.</span><span class="fu">passwordHashes</span><span class="op">.</span><span class="fu">get</span><span class="op">(</span>user<span class="op">)))</span> <span class="op">{</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>            <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">403</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Credenciales inválidas&quot;</span><span class="op">));</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>        <span class="dt">byte</span><span class="op">[]</span> random <span class="op">=</span> <span class="kw">new</span> <span class="dt">byte</span><span class="op">[</span><span class="dv">32</span><span class="op">];</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> java<span class="op">.</span><span class="fu">security</span><span class="op">.</span><span class="fu">SecureRandom</span><span class="op">().</span><span class="fu">nextBytes</span><span class="op">(</span>random<span class="op">);</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>        <span class="bu">String</span> token <span class="op">=</span> Base64<span class="op">.</span><span class="fu">getUrlEncoder</span><span class="op">().</span><span class="fu">withoutPadding</span><span class="op">().</span><span class="fu">encodeToString</span><span class="op">(</span>random<span class="op">);</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">long</span> expiresAt <span class="op">=</span> <span class="bu">System</span><span class="op">.</span><span class="fu">currentTimeMillis</span><span class="op">()</span> <span class="op">+</span> <span class="dv">5</span> <span class="op">*</span> <span class="dv">60_000L</span><span class="op">;</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Un token nuevo reemplaza al anterior de la misma cuenta.</span></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>        state<span class="op">.</span><span class="fu">resetGrants</span><span class="op">.</span><span class="fu">put</span><span class="op">(</span>user<span class="op">,</span> <span class="kw">new</span> LabState<span class="op">.</span><span class="fu">ResetGrant</span><span class="op">(</span><span class="fu">tokenHash</span><span class="op">(</span>token<span class="op">),</span> expiresAt<span class="op">));</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Solo se entrega al usuario que acaba de demostrar sesión y contraseña.</span></span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">200</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;user&quot;</span><span class="op">,</span> user<span class="op">,</span> <span class="st">&quot;token&quot;</span><span class="op">,</span> token<span class="op">,</span> <span class="st">&quot;expiresInSeconds&quot;</span><span class="op">,</span> <span class="dv">300</span><span class="op">));</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">resetPassword</span><span class="op">(</span>HttpExchange x<span class="op">,</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> p<span class="op">)</span> <span class="kw">throws</span> <span class="bu">Exception</span> <span class="op">{</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> user <span class="op">=</span> p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;user&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">);</span></span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> token <span class="op">=</span> p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;token&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">);</span></span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">synchronized</span> <span class="op">(</span>state<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>        LabState<span class="op">.</span><span class="fu">ResetGrant</span> grant <span class="op">=</span> state<span class="op">.</span><span class="fu">resetGrants</span><span class="op">.</span><span class="fu">get</span><span class="op">(</span>user<span class="op">);</span></span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(!</span>state<span class="op">.</span><span class="fu">passwordHashes</span><span class="op">.</span><span class="fu">containsKey</span><span class="op">(</span>user<span class="op">)</span> <span class="op">||</span> grant <span class="op">==</span> <span class="kw">null</span></span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>                <span class="op">||</span> grant<span class="op">.</span><span class="fu">expiresAt</span><span class="op">()</span> <span class="op">&lt;=</span> <span class="bu">System</span><span class="op">.</span><span class="fu">currentTimeMillis</span><span class="op">()</span></span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a>                <span class="op">||</span> token<span class="op">.</span><span class="fu">length</span><span class="op">()</span> <span class="op">!=</span> <span class="dv">43</span></span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>                <span class="op">||</span> <span class="op">!</span>java<span class="op">.</span><span class="fu">security</span><span class="op">.</span><span class="fu">MessageDigest</span><span class="op">.</span><span class="fu">isEqual</span><span class="op">(</span></span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>                        grant<span class="op">.</span><span class="fu">digest</span><span class="op">().</span><span class="fu">getBytes</span><span class="op">(</span>StandardCharsets<span class="op">.</span><span class="fu">US_ASCII</span><span class="op">),</span></span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">tokenHash</span><span class="op">(</span>token<span class="op">).</span><span class="fu">getBytes</span><span class="op">(</span>StandardCharsets<span class="op">.</span><span class="fu">US_ASCII</span><span class="op">)))</span> <span class="op">{</span></span>
+<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a>            <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">403</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Token inválido o vencido&quot;</span><span class="op">));</span></span>
+<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>        <span class="bu">String</span> password <span class="op">=</span> p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;password&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">);</span></span>
+<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>password<span class="op">.</span><span class="fu">length</span><span class="op">()</span> <span class="op">&lt;</span> <span class="dv">15</span> <span class="op">||</span> password<span class="op">.</span><span class="fu">length</span><span class="op">()</span> <span class="op">&gt;</span> <span class="dv">128</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>            <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">400</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Usa entre 15 y 128 caracteres&quot;</span><span class="op">));</span></span>
+<span id="cb22-45"><a href="#cb22-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb22-46"><a href="#cb22-46" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb22-47"><a href="#cb22-47" aria-hidden="true" tabindex="-1"></a>        <span class="bu">String</span> hash <span class="op">=</span> Passwords<span class="op">.</span><span class="fu">hash</span><span class="op">(</span>password<span class="op">);</span></span>
+<span id="cb22-48"><a href="#cb22-48" aria-hidden="true" tabindex="-1"></a>        state<span class="op">.</span><span class="fu">passwordHashes</span><span class="op">.</span><span class="fu">put</span><span class="op">(</span>user<span class="op">,</span> hash<span class="op">);</span></span>
+<span id="cb22-49"><a href="#cb22-49" aria-hidden="true" tabindex="-1"></a>        state<span class="op">.</span><span class="fu">resetGrants</span><span class="op">.</span><span class="fu">remove</span><span class="op">(</span>user<span class="op">);</span></span>
+<span id="cb22-50"><a href="#cb22-50" aria-hidden="true" tabindex="-1"></a>        state<span class="op">.</span><span class="fu">sessions</span><span class="op">.</span><span class="fu">entrySet</span><span class="op">().</span><span class="fu">removeIf</span><span class="op">(</span>entry <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb22-51"><a href="#cb22-51" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(!</span>entry<span class="op">.</span><span class="fu">getValue</span><span class="op">().</span><span class="fu">equals</span><span class="op">(</span>user<span class="op">))</span> <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb22-52"><a href="#cb22-52" aria-hidden="true" tabindex="-1"></a>            state<span class="op">.</span><span class="fu">sessionExpires</span><span class="op">.</span><span class="fu">remove</span><span class="op">(</span>entry<span class="op">.</span><span class="fu">getKey</span><span class="op">());</span></span>
+<span id="cb22-53"><a href="#cb22-53" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb22-54"><a href="#cb22-54" aria-hidden="true" tabindex="-1"></a>        <span class="op">});</span></span>
+<span id="cb22-55"><a href="#cb22-55" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb22-56"><a href="#cb22-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">200</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;reset&quot;</span><span class="op">,</span> <span class="kw">true</span><span class="op">,</span> <span class="st">&quot;user&quot;</span><span class="op">,</span> user<span class="op">));</span></span>
+<span id="cb22-57"><a href="#cb22-57" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Demostración legítima en PowerShell:</strong> ejecuta después
+de reconstruir, con el estado recién iniciado. La variable de token solo
+vive en la sesión del presentador.</p>
+<!-- snippet:A07-demo -->
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="va">$base</span> <span class="op">=</span> <span class="st">&#39;http://localhost:18080&#39;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="va">$loginBob</span> <span class="op">=</span> <span class="fu">Invoke-RestMethod</span> <span class="st">&quot;</span><span class="va">$base</span><span class="st">/api/login&quot;</span> <span class="op">-</span>Method Post <span class="op">-</span>Body @<span class="op">{</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    user <span class="op">=</span> <span class="st">&#39;bob&#39;</span><span class="op">;</span> password <span class="op">=</span> <span class="st">&#39;demo123&#39;</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="va">$headersBob</span> <span class="op">=</span> @<span class="op">{</span> Authorization <span class="op">=</span> <span class="st">&quot;Bearer </span><span class="op">$(</span><span class="va">$loginBob</span><span class="op">.</span><span class="fu">token</span><span class="op">)</span><span class="st">&quot;</span> <span class="op">}</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="va">$grant</span> <span class="op">=</span> <span class="fu">Invoke-RestMethod</span> <span class="st">&quot;</span><span class="va">$base</span><span class="st">/api/a07/reset-token&quot;</span> <span class="op">-</span>Method Post <span class="op">-</span>Headers <span class="va">$headersBob</span> <span class="op">-</span>Body @<span class="op">{</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    currentPassword <span class="op">=</span> <span class="st">&#39;demo123&#39;</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="fu">Invoke-RestMethod</span> <span class="st">&quot;</span><span class="va">$base</span><span class="st">/api/a07/reset&quot;</span> <span class="op">-</span>Method Post <span class="op">-</span>Body @<span class="op">{</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    user <span class="op">=</span> <span class="st">&#39;bob&#39;</span><span class="op">;</span> token <span class="op">=</span> <span class="va">$grant</span><span class="op">.</span><span class="fu">token</span><span class="op">;</span> password <span class="op">=</span> <span class="st">&#39;NuevaClaveDemo2026!&#39;</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="fu">Invoke-RestMethod</span> <span class="st">&quot;</span><span class="va">$base</span><span class="st">/api/login&quot;</span> <span class="op">-</span>Method Post <span class="op">-</span>Body @<span class="op">{</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    user <span class="op">=</span> <span class="st">&#39;bob&#39;</span><span class="op">;</span> password <span class="op">=</span> <span class="st">&#39;NuevaClaveDemo2026!&#39;</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Comprobación adicional:</strong> <code>reset-bob</code>
+devuelve 403; el token válido solo funciona para Bob y una vez. Al
+repetirlo, usarlo para Alice o esperar más de cinco minutos, devuelve
+403. El bearer anterior ya no sirve en <code>/api/me</code>,
+<code>demo123</code> deja de autenticar a Bob y la contraseña nueva sí
+funciona. Pedir un token sin sesión devuelve 401.</p>
+<p><strong>Para ampliar:</strong> entrega tokens mediante un canal
+previamente verificado para recuperación sin sesión, limita solicitudes
+e intentos, añade MFA donde corresponda y usa almacenamiento persistente
+con transacciones. El token aleatorio, su hash, la caducidad, el consumo
+y la revocación aquí sí están implementados. La serialización del login
+bajo un bloqueo global simplifica la demo; una aplicación real necesita
+control de concurrencia por cuenta y protección frente a saturación.</p>
+<p><a id="a08"></a></p>
+<h2 id="a08-fallas-en-integridad-de-software-o-datos">A08 — Fallas en
+integridad de software o datos</h2>
+<p><strong>Archivo:</strong> <code>LabServer.java</code>. Reemplaza
+<code>checkout</code> completo. Conserva el formato Base64 para que los
+botones actuales sigan funcionando, pero ignora <code>unitPrice</code> y
+calcula el precio desde el catálogo del servidor.</p>
+<!-- snippet:A08-checkout -->
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">checkout</span><span class="op">(</span>HttpExchange x<span class="op">,</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> p<span class="op">)</span> <span class="kw">throws</span> <span class="bu">IOException</span> <span class="op">{</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    com<span class="op">.</span><span class="fu">fasterxml</span><span class="op">.</span><span class="fu">jackson</span><span class="op">.</span><span class="fu">databind</span><span class="op">.</span><span class="fu">JsonNode</span> cart<span class="op">;</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">byte</span><span class="op">[]</span> decoded <span class="op">=</span> Base64<span class="op">.</span><span class="fu">getDecoder</span><span class="op">().</span><span class="fu">decode</span><span class="op">(</span>p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;cart&quot;</span><span class="op">,</span> <span class="st">&quot;&quot;</span><span class="op">));</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>decoded<span class="op">.</span><span class="fu">length</span> <span class="op">&gt;</span> <span class="dv">4096</span><span class="op">)</span> <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span><span class="op">();</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>        cart <span class="op">=</span> JSON<span class="op">.</span><span class="fu">readTree</span><span class="op">(</span>decoded<span class="op">);</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span><span class="bu">IllegalArgumentException</span> <span class="op">|</span> com<span class="op">.</span><span class="fu">fasterxml</span><span class="op">.</span><span class="fu">jackson</span><span class="op">.</span><span class="fu">core</span><span class="op">.</span><span class="fu">JsonProcessingException</span> exception<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">400</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Carrito inválido&quot;</span><span class="op">));</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>cart <span class="op">==</span> <span class="kw">null</span> <span class="op">||</span> <span class="op">!</span>cart<span class="op">.</span><span class="fu">isObject</span><span class="op">()</span> <span class="op">||</span> <span class="op">!</span>cart<span class="op">.</span><span class="fu">path</span><span class="op">(</span><span class="st">&quot;sku&quot;</span><span class="op">).</span><span class="fu">isTextual</span><span class="op">()</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>            <span class="op">||</span> <span class="op">!</span>cart<span class="op">.</span><span class="fu">path</span><span class="op">(</span><span class="st">&quot;quantity&quot;</span><span class="op">).</span><span class="fu">isIntegralNumber</span><span class="op">()</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>            <span class="op">||</span> <span class="op">!</span>cart<span class="op">.</span><span class="fu">path</span><span class="op">(</span><span class="st">&quot;quantity&quot;</span><span class="op">).</span><span class="fu">canConvertToInt</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">400</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Carrito inválido&quot;</span><span class="op">));</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> sku <span class="op">=</span> cart<span class="op">.</span><span class="fu">path</span><span class="op">(</span><span class="st">&quot;sku&quot;</span><span class="op">).</span><span class="fu">asText</span><span class="op">();</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> quantity <span class="op">=</span> cart<span class="op">.</span><span class="fu">path</span><span class="op">(</span><span class="st">&quot;quantity&quot;</span><span class="op">).</span><span class="fu">intValue</span><span class="op">();</span></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">Integer</span> unitPrice <span class="op">=</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;LAPTOP-DEMO&quot;</span><span class="op">,</span> <span class="dv">1000</span><span class="op">).</span><span class="fu">get</span><span class="op">(</span>sku<span class="op">);</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>unitPrice <span class="op">==</span> <span class="kw">null</span> <span class="op">||</span> quantity <span class="op">&lt;</span> <span class="dv">1</span> <span class="op">||</span> quantity <span class="op">&gt;</span> <span class="dv">10</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">400</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;SKU o cantidad inválidos&quot;</span><span class="op">));</span></span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> total <span class="op">=</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">multiplyExact</span><span class="op">(</span>unitPrice<span class="op">,</span> quantity<span class="op">);</span></span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">200</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;sku&quot;</span><span class="op">,</span> sku<span class="op">,</span> <span class="st">&quot;quantity&quot;</span><span class="op">,</span> quantity<span class="op">,</span></span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;unitPrice&quot;</span><span class="op">,</span> unitPrice<span class="op">,</span> <span class="st">&quot;charged&quot;</span><span class="op">,</span> total<span class="op">,</span> <span class="st">&quot;priceSource&quot;</span><span class="op">,</span> <span class="st">&quot;server-catalog&quot;</span><span class="op">));</span></span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Comprobación:</strong> el carrito original y uno con
+<code>unitPrice=1</code> cobran 1000 para una unidad. SKU desconocido,
+cantidad fraccionaria, cero, negativa, mayor de diez, Base64 inválido o
+JSON inválido devuelven 400. No se afirma que Base64 tenga una firma: la
+autoridad del precio es el servidor.</p>
+<p><strong>Para ampliar:</strong> resuelve también descuentos, impuestos
+y disponibilidad en el servidor. Si usas cotizaciones firmadas, valida
+propietario, audiencia, vencimiento y repetición antes de aceptar el
+pedido.</p>
+<p><a id="a09"></a></p>
+<h2 id="a09-fallas-en-registro-y-alertas-de-seguridad">A09 — Fallas en
+registro y alertas de seguridad</h2>
+<p><strong>Orden:</strong> puedes aplicar A09 sobre el login original,
+sobre A04, o después de A07. Si aplicas A07 posteriormente, vuelve a
+insertar la llamada del paso 3 porque reemplaza <code>login</code>.</p>
+<p><strong>Paso 1 — <code>LabServer.java</code>:</strong> agrega estos
+dos campos dentro de la clase, fuera de los métodos. No agregues
+imports: ya existe <code>java.util.*</code>.</p>
+<!-- snippet:A09-fields -->
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">final</span> <span class="bu">Deque</span><span class="op">&lt;</span><span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Object</span><span class="op">&gt;&gt;</span> securityEvents <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayDeque</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">final</span> <span class="bu">Deque</span><span class="op">&lt;</span><span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Object</span><span class="op">&gt;&gt;</span> securityAlerts <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayDeque</span><span class="op">&lt;&gt;();</span></span></code></pre></div>
+<p><strong>Paso 2 — <code>LabServer.java</code>:</strong> agrega estos
+métodos. Cada fallo genera un evento JSON y el octavo para la misma
+cuenta en cinco minutos genera una alerta JSON. Ambos se imprimen en la
+salida del contenedor y se conservan en un búfer acotado para la
+presentación. Los valores del cliente se serializan y se limita su
+longitud.</p>
+<!-- snippet:A09-methods -->
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">recordLoginFailure</span><span class="op">(</span>HttpExchange x<span class="op">,</span> <span class="bu">String</span> user<span class="op">)</span> <span class="kw">throws</span> <span class="bu">IOException</span> <span class="op">{</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">long</span> now <span class="op">=</span> <span class="bu">System</span><span class="op">.</span><span class="fu">currentTimeMillis</span><span class="op">();</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> actor <span class="op">=</span> user<span class="op">.</span><span class="fu">length</span><span class="op">()</span> <span class="op">&lt;=</span> <span class="dv">80</span> <span class="op">?</span> user <span class="op">:</span> <span class="st">&quot;[usuario demasiado largo]&quot;</span><span class="op">;</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> correlationId <span class="op">=</span> <span class="bu">UUID</span><span class="op">.</span><span class="fu">randomUUID</span><span class="op">().</span><span class="fu">toString</span><span class="op">();</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Object</span><span class="op">&gt;</span> event <span class="op">=</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;type&quot;</span><span class="op">,</span> <span class="st">&quot;LOGIN_FAILED&quot;</span><span class="op">,</span> <span class="st">&quot;timestamp&quot;</span><span class="op">,</span> java<span class="op">.</span><span class="fu">time</span><span class="op">.</span><span class="fu">Instant</span><span class="op">.</span><span class="fu">ofEpochMilli</span><span class="op">(</span>now<span class="op">).</span><span class="fu">toString</span><span class="op">(),</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;epochMillis&quot;</span><span class="op">,</span> now<span class="op">,</span> <span class="st">&quot;actor&quot;</span><span class="op">,</span> actor<span class="op">,</span> <span class="st">&quot;result&quot;</span><span class="op">,</span> <span class="st">&quot;DENIED&quot;</span><span class="op">,</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;source&quot;</span><span class="op">,</span> x<span class="op">.</span><span class="fu">getRemoteAddress</span><span class="op">().</span><span class="fu">getAddress</span><span class="op">().</span><span class="fu">getHostAddress</span><span class="op">(),</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;correlationId&quot;</span><span class="op">,</span> correlationId<span class="op">);</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">synchronized</span> <span class="op">(</span>securityEvents<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>        state<span class="op">.</span><span class="fu">observedLoginFailures</span><span class="op">.</span><span class="fu">incrementAndGet</span><span class="op">();</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>securityEvents<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">==</span> <span class="dv">256</span><span class="op">)</span> securityEvents<span class="op">.</span><span class="fu">removeFirst</span><span class="op">();</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>        securityEvents<span class="op">.</span><span class="fu">addLast</span><span class="op">(</span>event<span class="op">);</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>JSON<span class="op">.</span><span class="fu">writeValueAsString</span><span class="op">(</span>event<span class="op">));</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>        <span class="dt">long</span> count <span class="op">=</span> securityEvents<span class="op">.</span><span class="fu">stream</span><span class="op">()</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">filter</span><span class="op">(</span>item <span class="op">-&gt;</span> actor<span class="op">.</span><span class="fu">equals</span><span class="op">(</span>item<span class="op">.</span><span class="fu">get</span><span class="op">(</span><span class="st">&quot;actor&quot;</span><span class="op">)))</span></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">filter</span><span class="op">(</span>item <span class="op">-&gt;</span> <span class="op">(</span><span class="dt">long</span><span class="op">)</span> item<span class="op">.</span><span class="fu">get</span><span class="op">(</span><span class="st">&quot;epochMillis&quot;</span><span class="op">)</span> <span class="op">&gt;=</span> now <span class="op">-</span> <span class="dv">5</span> <span class="op">*</span> <span class="dv">60_000L</span><span class="op">)</span></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">count</span><span class="op">();</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>count <span class="op">==</span> <span class="dv">8</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>            <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Object</span><span class="op">&gt;</span> alert <span class="op">=</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;type&quot;</span><span class="op">,</span> <span class="st">&quot;LOGIN_FAILURE_THRESHOLD&quot;</span><span class="op">,</span></span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;timestamp&quot;</span><span class="op">,</span> java<span class="op">.</span><span class="fu">time</span><span class="op">.</span><span class="fu">Instant</span><span class="op">.</span><span class="fu">ofEpochMilli</span><span class="op">(</span>now<span class="op">).</span><span class="fu">toString</span><span class="op">(),</span></span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;actor&quot;</span><span class="op">,</span> actor<span class="op">,</span> <span class="st">&quot;failures&quot;</span><span class="op">,</span> count<span class="op">,</span> <span class="st">&quot;windowSeconds&quot;</span><span class="op">,</span> <span class="dv">300</span><span class="op">,</span></span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;correlationId&quot;</span><span class="op">,</span> correlationId<span class="op">);</span></span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="op">(</span>securityAlerts<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">==</span> <span class="dv">64</span><span class="op">)</span> securityAlerts<span class="op">.</span><span class="fu">removeFirst</span><span class="op">();</span></span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>            securityAlerts<span class="op">.</span><span class="fu">addLast</span><span class="op">(</span>alert<span class="op">);</span></span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>            <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>JSON<span class="op">.</span><span class="fu">writeValueAsString</span><span class="op">(</span>alert<span class="op">));</span></span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">telemetry</span><span class="op">(</span>HttpExchange x<span class="op">)</span> <span class="kw">throws</span> <span class="bu">IOException</span> <span class="op">{</span></span>
+<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span><span class="st">&quot;alice&quot;</span><span class="op">.</span><span class="fu">equals</span><span class="op">(</span><span class="fu">currentUser</span><span class="op">(</span>x<span class="op">)))</span> <span class="op">{</span></span>
+<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">403</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Acceso no autorizado&quot;</span><span class="op">));</span></span>
+<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>    <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Object</span><span class="op">&gt;</span> snapshot<span class="op">;</span></span>
+<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">synchronized</span> <span class="op">(</span>securityEvents<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>        snapshot <span class="op">=</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;observedFailures&quot;</span><span class="op">,</span> state<span class="op">.</span><span class="fu">observedLoginFailures</span><span class="op">.</span><span class="fu">get</span><span class="op">(),</span></span>
+<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;securityEvents&quot;</span><span class="op">,</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>securityEvents<span class="op">),</span></span>
+<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;alerts&quot;</span><span class="op">,</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>securityAlerts<span class="op">));</span></span>
+<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">200</span><span class="op">,</span> snapshot<span class="op">);</span></span>
+<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Paso 3 — <code>LabServer.login</code>:</strong> dentro del
+bloque de credenciales incorrectas, reemplaza la línea
+<code>if (silent) state.observedLoginFailures.incrementAndGet();</code>
+por esta llamada. Conserva el 401 y el <code>return</code>. La misma
+regla aplica a ambos endpoints de login, sin depender de
+<code>silent</code>.</p>
+<!-- snippet:A09-hook -->
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">recordLoginFailure</span><span class="op">(</span>x<span class="op">,</span> user<span class="op">);</span></span></code></pre></div>
+<p><strong>Paso 4 — <code>LabServer.route</code>:</strong> reemplaza el
+caso completo de <code>GET /api/a09/telemetry</code> (incluida su
+continuación con listas vacías) por:</p>
+<!-- snippet:A09-route -->
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="cf">case</span> <span class="st">&quot;GET /api/a09/telemetry&quot;</span> <span class="op">-&gt;</span> <span class="fu">telemetry</span><span class="op">(</span>x<span class="op">);</span></span></code></pre></div>
+<p><strong>Demostración en PowerShell:</strong> funciona también con
+A02, que elimina la cuenta admin. Alice es la operadora autorizada de
+esta demostración; se registran igualmente intentos contra cuentas
+inexistentes.</p>
+<!-- snippet:A09-demo -->
+<div class="sourceCode" id="cb29"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="va">$base</span> <span class="op">=</span> <span class="st">&#39;http://localhost:18080&#39;</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="va">$loginAlice</span> <span class="op">=</span> <span class="fu">Invoke-RestMethod</span> <span class="st">&quot;</span><span class="va">$base</span><span class="st">/api/login&quot;</span> <span class="op">-</span>Method Post <span class="op">-</span>Body @<span class="op">{</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    user <span class="op">=</span> <span class="st">&#39;alice&#39;</span><span class="op">;</span> password <span class="op">=</span> <span class="st">&#39;demo123&#39;</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="va">$headersAlice</span> <span class="op">=</span> @<span class="op">{</span> Authorization <span class="op">=</span> <span class="st">&quot;Bearer </span><span class="op">$(</span><span class="va">$loginAlice</span><span class="op">.</span><span class="fu">token</span><span class="op">)</span><span class="st">&quot;</span> <span class="op">}</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span><span class="op">..</span><span class="dv">8</span> <span class="op">|</span> <span class="fu">ForEach-Object</span> <span class="op">{</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">Invoke-RestMethod</span> <span class="st">&quot;</span><span class="va">$base</span><span class="st">/api/a09/login&quot;</span> <span class="op">-</span>Method Post <span class="op">-</span>Body @<span class="op">{</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>            user <span class="op">=</span> <span class="st">&#39;admin&#39;</span><span class="op">;</span> password <span class="op">=</span> <span class="st">&#39;wrong&#39;</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span> <span class="op">|</span> <span class="fu">Out-Null</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">throw</span> <span class="st">&#39;Se esperaba HTTP 401&#39;</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> <span class="op">{</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span><span class="va">$null</span> <span class="op">-eq</span> <span class="va">$_</span><span class="op">.</span><span class="fu">Exception</span><span class="op">.</span><span class="fu">Response</span> <span class="op">-or</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>            <span class="op">[</span><span class="dt">int</span><span class="op">]</span><span class="va">$_</span><span class="op">.</span><span class="fu">Exception</span><span class="op">.</span><span class="fu">Response</span><span class="op">.</span><span class="fu">StatusCode</span> <span class="op">-ne</span> <span class="dv">401</span><span class="op">)</span> <span class="op">{</span> <span class="cf">throw</span> <span class="op">}</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a><span class="fu">Invoke-RestMethod</span> <span class="st">&quot;</span><span class="va">$base</span><span class="st">/api/a09/telemetry&quot;</span> <span class="op">-</span>Headers <span class="va">$headersAlice</span> <span class="op">|</span></span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ConvertTo-Json</span> <span class="op">-</span>Depth <span class="dv">6</span></span></code></pre></div>
+<p><strong>Comprobación:</strong> desde un servidor recién iniciado,
+ocho fallos generan <code>observedFailures=8</code>, ocho eventos y una
+alerta <code>LOGIN_FAILURE_THRESHOLD</code>. Revisa también
+<code>docker compose logs lab</code>. Un visitante recibe 403 en
+telemetría. No se registran contraseñas, cookies ni tokens. La ventana
+se reinicia tras cinco minutos; la alerta aparece al pasar de siete a
+ocho fallos para una cuenta dentro de la ventana.</p>
+<p><strong>Límite explícito:</strong> el búfer conserva 256 eventos y 64
+alertas y se pierde al reiniciar; la ventana se calcula sobre esos 256
+eventos. Es una implementación verificable del escenario, no un SIEM:
+con mucho tráfico puede perder cobertura. En operación, envía el JSON a
+un receptor central con retención y control de acceso, configura entrega
+a responsables y monitorea fallos del canal. Sustituye el permiso fijo
+de Alice por un rol gestionado por el servidor.</p>
+<p><a id="a10"></a></p>
+<h2 id="a10-manejo-inadecuado-de-condiciones-excepcionales">A10 — Manejo
+inadecuado de condiciones excepcionales</h2>
+<p><strong>Archivo:</strong> <code>LabServer.java</code>. Reemplaza
+<code>pay</code> completo. Usa la excepción que el simulador ya lanza
+(<code>IllegalStateException</code>), por lo que no necesitas inventar
+una clase de excepción. Se conserva el interruptor local
+<code>riskService=offline</code> para demostrar el fallo.</p>
+<!-- snippet:A10-pay -->
+<div class="sourceCode" id="cb30"><pre
+class="sourceCode java"><code class="sourceCode java"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span> <span class="dt">void</span> <span class="fu">pay</span><span class="op">(</span>HttpExchange x<span class="op">,</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> p<span class="op">)</span> <span class="kw">throws</span> <span class="bu">IOException</span> <span class="op">{</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> amount<span class="op">;</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>        amount <span class="op">=</span> <span class="bu">Integer</span><span class="op">.</span><span class="fu">parseInt</span><span class="op">(</span>p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;amount&quot;</span><span class="op">,</span> <span class="st">&quot;1000&quot;</span><span class="op">));</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span><span class="bu">NumberFormatException</span> exception<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">400</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Importe inválido&quot;</span><span class="op">));</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>amount <span class="op">&lt;=</span> <span class="dv">0</span> <span class="op">||</span> amount <span class="op">&gt;</span> <span class="dv">1_000_000</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">400</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Importe inválido&quot;</span><span class="op">));</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">String</span> riskService <span class="op">=</span> p<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span><span class="st">&quot;riskService&quot;</span><span class="op">,</span> <span class="st">&quot;online&quot;</span><span class="op">);</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span><span class="bu">Set</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;online&quot;</span><span class="op">,</span> <span class="st">&quot;offline&quot;</span><span class="op">).</span><span class="fu">contains</span><span class="op">(</span>riskService<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">400</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="st">&quot;Estado del servicio inválido&quot;</span><span class="op">));</span></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">boolean</span> approved<span class="op">;</span></span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> <span class="op">{</span></span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span><span class="st">&quot;offline&quot;</span><span class="op">.</span><span class="fu">equals</span><span class="op">(</span>riskService<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalStateException</span><span class="op">(</span><span class="st">&quot;Antifraude no disponible&quot;</span><span class="op">);</span></span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb30-23"><a href="#cb30-23" aria-hidden="true" tabindex="-1"></a>        approved <span class="op">=</span> amount <span class="op">&lt;=</span> <span class="dv">500</span><span class="op">;</span></span>
+<span id="cb30-24"><a href="#cb30-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">catch</span> <span class="op">(</span><span class="bu">IllegalStateException</span> exception<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb30-25"><a href="#cb30-25" aria-hidden="true" tabindex="-1"></a>        <span class="bu">String</span> correlationId <span class="op">=</span> <span class="bu">UUID</span><span class="op">.</span><span class="fu">randomUUID</span><span class="op">().</span><span class="fu">toString</span><span class="op">();</span></span>
+<span id="cb30-26"><a href="#cb30-26" aria-hidden="true" tabindex="-1"></a>        <span class="bu">System</span><span class="op">.</span><span class="fu">err</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>JSON<span class="op">.</span><span class="fu">writeValueAsString</span><span class="op">(</span><span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb30-27"><a href="#cb30-27" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;type&quot;</span><span class="op">,</span> <span class="st">&quot;RISK_SERVICE_UNAVAILABLE&quot;</span><span class="op">,</span></span>
+<span id="cb30-28"><a href="#cb30-28" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;timestamp&quot;</span><span class="op">,</span> java<span class="op">.</span><span class="fu">time</span><span class="op">.</span><span class="fu">Instant</span><span class="op">.</span><span class="fu">now</span><span class="op">().</span><span class="fu">toString</span><span class="op">(),</span></span>
+<span id="cb30-29"><a href="#cb30-29" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;correlationId&quot;</span><span class="op">,</span> correlationId<span class="op">)));</span></span>
+<span id="cb30-30"><a href="#cb30-30" aria-hidden="true" tabindex="-1"></a>        <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> <span class="dv">503</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;approved&quot;</span><span class="op">,</span> <span class="kw">false</span><span class="op">,</span> <span class="st">&quot;reason&quot;</span><span class="op">,</span> <span class="st">&quot;risk-unavailable&quot;</span><span class="op">,</span></span>
+<span id="cb30-31"><a href="#cb30-31" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;amount&quot;</span><span class="op">,</span> amount<span class="op">,</span> <span class="st">&quot;completedOrders&quot;</span><span class="op">,</span> state<span class="op">.</span><span class="fu">orders</span><span class="op">.</span><span class="fu">get</span><span class="op">(),</span></span>
+<span id="cb30-32"><a href="#cb30-32" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;correlationId&quot;</span><span class="op">,</span> correlationId<span class="op">));</span></span>
+<span id="cb30-33"><a href="#cb30-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb30-34"><a href="#cb30-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb30-35"><a href="#cb30-35" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> count <span class="op">=</span> approved <span class="op">?</span> state<span class="op">.</span><span class="fu">orders</span><span class="op">.</span><span class="fu">incrementAndGet</span><span class="op">()</span> <span class="op">:</span> state<span class="op">.</span><span class="fu">orders</span><span class="op">.</span><span class="fu">get</span><span class="op">();</span></span>
+<span id="cb30-36"><a href="#cb30-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">json</span><span class="op">(</span>x<span class="op">,</span> approved <span class="op">?</span> <span class="dv">200</span> <span class="op">:</span> <span class="dv">403</span><span class="op">,</span> <span class="bu">Map</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;approved&quot;</span><span class="op">,</span> approved<span class="op">,</span></span>
+<span id="cb30-37"><a href="#cb30-37" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;reason&quot;</span><span class="op">,</span> approved <span class="op">?</span> <span class="st">&quot;risk-accepted&quot;</span> <span class="op">:</span> <span class="st">&quot;risk-rejected&quot;</span><span class="op">,</span></span>
+<span id="cb30-38"><a href="#cb30-38" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;amount&quot;</span><span class="op">,</span> amount<span class="op">,</span> <span class="st">&quot;completedOrders&quot;</span><span class="op">,</span> count<span class="op">));</span></span>
+<span id="cb30-39"><a href="#cb30-39" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Comprobación:</strong> importe 1000 con servicio online
+devuelve 403; offline devuelve 503 y <code>approved=false</code>. En
+ambos casos <code>completedOrders</code> no aumenta. Un importe 100 con
+servicio online devuelve 200 e incrementa el contador una vez por
+llamada. Importes inválidos devuelven 400.</p>
+<p><strong>Para ampliar:</strong> este parche cierra el fallo ante
+indisponibilidad; no implementa deduplicación de solicitudes. Para pagos
+reales agrega claves de idempotencia persistentes, transacciones,
+timeouts y reintentos limitados; distingue rechazo de indisponibilidad y
+no produzcas efectos financieros antes de la aprobación. Retira el
+interruptor público de fallos.</p>
+<h2 id="aceptación-de-la-presentación">Aceptación de la
+presentación</h2>
+<p>Comprueba tanto el intento rechazado como el caso legítimo. A01
+conserva la factura propia; A03 conserva el precio aprobado; A04
+conserva el login; A05 conserva la búsqueda; A06 permite un primer
+canje; A07 permite el cambio autorizado; A08 conserva el checkout; A09
+permite consultar auditoría a la operadora; A10 permite importes
+aprobados. A02 cierra deliberadamente el diagnóstico público.</p>
+<p>Para regresión automatizada, adapta
+<code>src/test/java/mx/demo/owasp/LabServerTest.java</code> a las
+respuestas indicadas y agrega concurrencia en A06, token
+vencido/reutilizado y revocación en A07, y ausencia de incremento de
+pedidos en A10. Mantén las pruebas de casos legítimos. Ningún éxito de
+compilación equivale por sí solo a validar estos comportamientos.</p>
+<p>Referencias: <a href="https://top10.owasp.org/2025/es/">OWASP Top
+10:2025</a>, <a
+href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">almacenamiento
+de contraseñas</a> y <a
+href="https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html">recuperación
+de contraseñas</a>. Los controles de tokens aleatorios, caducidad y
+consumo único de A07 siguen esta última guía; la entrega por correo
+verificado requiere un servicio adicional.</p>
+</main><footer class="guide-footer"><a href="#inicio">Volver al inicio</a></footer><script>
+document.querySelectorAll('pre').forEach((pre, index) => {
+  const code = pre.querySelector('code');
+  if (!code) return;
+  const toolbar = document.createElement('div');
+  toolbar.className = 'copy-toolbar';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Copiar';
+  button.setAttribute('aria-label', 'Copiar bloque de código ' + (index + 1));
+  const status = document.createElement('span');
+  status.className = 'copy-status';
+  status.setAttribute('role', 'status');
+  toolbar.append(button, status);
+  const container = pre.parentElement.classList.contains('sourceCode') ? pre.parentElement : pre;
+  container.before(toolbar);
+  button.addEventListener('click', async () => {
+    try {
+      if (!navigator.clipboard || !window.isSecureContext) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(code.textContent.replace(/\n$/, ''));
+      status.textContent = 'Copiado';
+    } catch {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(code);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      status.textContent = 'Código seleccionado. Pulsa Ctrl+C (Cmd+C en Mac).';
+    }
+  });
+});
+</script></body></html>
